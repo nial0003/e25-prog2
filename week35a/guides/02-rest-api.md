@@ -159,6 +159,34 @@ You should receive a response like this:
 ]
 ```
 
+## Status Codes
+When building REST APIs, it's important to return appropriate HTTP status codes to indicate the result of the request. Here are some common status codes:
+- `200 OK`: The request was successful.
+- `201 Created`: A new resource was successfully created.
+- `204 No Content`: The request was successful, but there is no content to return.
+- `400 Bad Request`: The request was invalid or cannot be processed.
+- `404 Not Found`: The requested resource was not found.
+- `500 Internal Server Error`: An error occurred on the server.
+
+This is the reason why we use `ResponseEntity` in our controller methods, as it allows us to control the status code along with the response body. The status codes can be set using the `ResponseEntity` methods like `ok()`, `status()`, `noContent()`, `badRequest()`, `notFound()`, and `internalServerError()`.
+
+```java
+// Status code 200 OK
+return ResponseEntity.ok(persons);
+// Status code 201 Created
+return ResponseEntity.status(HttpStatus.CREATED).body(newPerson);
+// Status code 204 No Content
+return ResponseEntity.noContent().build();
+// Status code 400 Bad Request
+return ResponseEntity.badRequest().body("Invalid request");
+// Status code 404 Not Found
+return ResponseEntity.notFound().build();
+// Status code 500 Internal Server Error
+return ResponseEntity.internalServerError().build();
+```
+
+---
+
 ## Exercise
 1. Create a new REST API that returns the following JSON response:
 ```json
@@ -174,5 +202,5 @@ You should receive a response like this:
     }
 ]
 ```
-Hint: Create classes for `Book`, `Author`, and use a `List<String>` for tags. Implement a controller (`BookController`) that returns a list of `Book` objects. Create several `Book` objects in the controller constructor to return a list of books.
+**Hint:** Create classes for `Book`, `Author`, and use a `List<String>` for tags. Implement a controller (`BookController`) that returns a list of `Book` objects. Create several `Book` objects in the controller constructor to return a list of books.
 
