@@ -73,3 +73,92 @@ describe course;
 ```
 - You should see the following output:
 ![mysql](assets/02-img1.png)
+
+## Creating a Repository (data access) layer
+In order for our application to access the database, we will use a JPA interface, that automatically (at runtime) creates CRUD operations.
+
+```java
+public interface CourseRepository extends JpaRepository<Course, Long> {}
+```
+The input in the diamond operator (eg. `<>`) is `<ENTITY_CLASS, PRIMARY_KEY_FIELD>`.
+
+Now we have a way to query the database using the interface.
+
+## Creating a REST Controller
+To expose endpoints the endpoint, we will make a `CourseController` class. You are probably familiar with the annotation `@Controller`, which exposes views. We want to expose data in the form of `JSON`. To do this we will use another annotation `@RestController`.
+
+```java
+@RestController
+@RequestMapping("/api/courses")
+public class CourseController {
+    private final CourseRepository courseRepository;
+    
+    public CourseController(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<Course>> getAllCourses() {
+        return ResponseEntity.ok(courseRepository.findAll());
+    }
+
+    // Other CRUD operations (POST, PUT, DELETE etc.)
+}
+```
+
+## Creating dummy data
+At the moment there is no data in the database, so we would like to add some dummy data. There are several ways to do it, we will do it the programmatic way:
+
+```java
+@Component
+public class InitData implements CommandLineRunner {
+    private CourseRepository courseRepository;
+
+    public InitData(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
+    }
+
+    @Override
+    public void run(String... args) {
+        Course c1 = new Course();
+        c1.setName("PROG2");
+        c1.setInstructor("OSNB");
+
+        Course c2 = new Course();
+        c2.setName("TEK2");
+        c2.setInstructor("OSNB");
+        
+        Course c3 = new Course();
+        c3.setName("SYS2");
+        c3.setInstructor("OSTU");
+
+        courseRepository.saveAll(List.of(c1,c2,c3));
+    }
+
+}
+```
+
+## Testing the endpoint
+- Start by running the application, the application is running on `http://localhost:8080`.
+- Open up a browser, and paste in the url `http://localhost:8080/api/courses`:
+- You should get the following output:
+```json
+[
+    {
+        "id": 1,
+        "name":"PROG2",
+        "instructor": "OSNB"
+    },
+    {
+        "id": 2,
+        "name":"TEK2",
+        "instructor": "OSNB"
+    },
+    {
+        "id": 3,
+        "name":"SYS2",
+        "instructor": "OSTU"
+    }
+]
+```
+
