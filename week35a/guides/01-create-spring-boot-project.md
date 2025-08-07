@@ -65,7 +65,7 @@ spring.jpa.hibernate.ddl-auto=create
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 ```
 
-Note that we are only going to use one at a time.
+Run the application again to verify database access.
 
 ---
 
