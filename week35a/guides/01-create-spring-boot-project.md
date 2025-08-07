@@ -36,7 +36,7 @@ We will use IntelliJ IDEA.
 
 ![IntelliJ](assets/01-img3.png)
 
-5. Click **Finish** to generate the project.
+5. Click **Create** to generate the project.
 
 6. Once created, open `DemoApplication.java` and run it to verify everything works.
 
@@ -45,7 +45,7 @@ We will use IntelliJ IDEA.
 
 ## Configuration for database access
 - Navigate to `src/main/resources/application.properties`
-```
+``` properties
 spring.application.name=demo
 
 # H2 Configuration
