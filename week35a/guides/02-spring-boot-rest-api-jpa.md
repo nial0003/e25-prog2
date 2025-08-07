@@ -162,3 +162,140 @@ public class InitData implements CommandLineRunner {
 ]
 ```
 
+- We could also test the in the terminal
+```bash
+curl http://localhost:8080/api/courses
+```
+- Which gives the same output as above, but maybe not as pretty.
+
+
+## Implementing full CRUD operations
+We still need implement the remaining four endpoints:
+
+In `CourseController.java` add the following
+```java
+    @GetMapping("/{id}")
+    public ResponseEntity<Course> getCourseById(@PathVariable Long id) {
+        Optional<Course> coursOptional = courseRepository.findById(id);
+        if(coursOptional.isPresent()) {
+            return ResponseEntity.ok(coursOptional.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+```
+- `@GetMapping("/{id}")`: This is the endpoint for getting a course by its ID.
+- `@PathVariable Long id`: This tells Spring to extract the `id` from the URL.
+- `Optional<Course> coursOptional = courseRepository.findById(id)`: This uses the repository to find a course by its ID. The return type is `Optional<Course>`, which is a container that may or may not contain a value. 
+- `if(coursOptional.isPresent())`: This checks if the course was found.
+- `return ResponseEntity.ok(coursOptional.get())`: If the course was found, we return it with a 200 OK status.
+- `return ResponseEntity.notFound().build()`: If the course was not found, we return a 404 Not Found status.
+
+```java
+    @PostMapping
+    public ResponseEntity<Course> createCourse(@RequestBody Course course) {
+        Course savedCourse = courseRepository.save(course);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedCourse);
+    }
+```
+- `@PostMapping`: This is the endpoint for creating a new course.
+- `@RequestBody Course course`: This tells Spring to extract the course data from the request body.
+- `Course savedCourse = courseRepository.save(course)`: This saves the course to the database.
+- `return ResponseEntity.status(HttpStatus.CREATED).body(savedCourse)`: This returns the saved course with a 201 Created status.
+
+```java
+    @PutMapping("/{id}")
+    public ResponseEntity<Course> updateCourse(@PathVariable Long id, @RequestBody Course course) {
+        if(!courseRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        course.setId(id);
+        Course updatedCourse = courseRepository.save(course);
+        return ResponseEntity.ok(updatedCourse);
+    }
+```
+- `@PutMapping("/{id}")`: This is the endpoint for updating a course by its ID.
+- `if(!courseRepository.existsById(id))`: This checks if the course exists.
+- `course.setId(id)`: This sets the ID of the course to the one provided (only if there is a mismatch).
+- `Course updatedCourse = courseRepository.save(course)`: This saves the updated course to the database.
+
+- `return ResponseEntity.ok(updatedCourse)`: This returns the updated course with a 200 OK status.
+
+```java
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
+        if(!courseRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        courseRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+```
+- `@DeleteMapping("/{id}")`: This is the endpoint for deleting a course by its ID.
+- `courseRepository.deleteById(id)`: This deletes the course from the database.
+- `return ResponseEntity.noContent().build()`: This returns a 204 No Content status, indicating that the deletion was successful.
+
+## Testing the remaining endpoints
+- **Get a course by ID**:
+```bash
+curl http://localhost:8080/api/courses/1
+```
+- **Create a new course**:
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"name":"NEW COURSE", "instructor":"NEW INSTRUCTOR"}' http://localhost:8080/api/courses
+```
+- **Update a course**:
+```bash
+curl -X PUT -H "Content-Type: application/json" -d '{"name":"UPDATED COURSE", "instructor":"UPDATED INSTRUCTOR"}' http://localhost:8080/api/courses/1
+```
+
+- **Delete a course**:
+```bash
+curl -X DELETE http://localhost:8080/api/courses/1
+```
+
+## Using named queries
+Named queries allow you to define queries in a more readable way. Let's add a named query to our `Course` entity to find courses by instructor.
+```java
+public interface CourseRepository extends JpaRepository<Course, Long> {
+    List<Course> findByInstructor(String instructor);
+}
+```
+You can use this method in your controller to get courses by instructor:
+```java
+@GetMapping("/instructor/{instructor}")
+public ResponseEntity<List<Course>> getCoursesByInstructor(@PathVariable String instructor) {
+    List<Course> courses = courseRepository.findByInstructor(instructor);
+    if (courses.isEmpty()) {
+        return ResponseEntity.notFound().build();
+    }
+    return ResponseEntity.ok(courses);
+}
+```
+## Testing named queries
+- **Get courses by instructor**:
+```bash
+curl http://localhost:8080/api/courses/instructor/OSNB
+```
+- This will return all courses taught by "OSNB".
+```json
+[
+    {
+        "id": 1,
+        "name": "PROG2",
+        "instructor": "OSNB"
+    },
+    {
+        "id": 2,
+        "name": "TEK2",
+        "instructor": "OSNB"
+    }
+]
+```
+
+## Conclusion
+In this tutorial, we have created a simple Spring Boot REST API with Spring Data JPA to manage courses. We have implemented all CRUD operations and tested them using both a web browser and the terminal. This is a foundational step in building more complex applications with Spring Boot and JPA.
+
+## Exercises
+1. Add a service layer that handles the business logic. This will make the controller depend on `CourseService` instead of `CourseRepository`, and the service will depend on `CourseRepository`. For these small applications, it really doesn't matter, but if you add more complex logic, it is a good practice to separate the concerns.
+2. Repeat the same steps for a `Student` entity, creating a `StudentRepository`, `StudentController`, and implementing CRUD operations.
