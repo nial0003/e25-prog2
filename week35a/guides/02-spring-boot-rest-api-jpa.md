@@ -254,13 +254,18 @@ curl -X PUT -H "Content-Type: application/json" -d '{"name":"UPDATED COURSE", "i
 curl -X DELETE http://localhost:8080/api/courses/1
 ```
 
-## Using named queries
-Named queries allow you to define queries in a more readable way. Let's add a named query to our `Course` entity to find courses by instructor.
+## Using custom queries
+Custom queries allow you to define queries in a more readable way. We define custom queries in the repository interface by simply defining methods that follow a naming convention. Spring Data JPA will automatically implement these methods based on the method names. In this example, we will create a custom query to find courses by their instructor. Let's add a custom query to our `Course` entity to find courses by instructor.
 ```java
 public interface CourseRepository extends JpaRepository<Course, Long> {
     List<Course> findByInstructor(String instructor);
 }
 ```
+- The method `findByInstructor` will automatically generate a query that retrieves all courses taught by the specified instructor. Ie. it will generate a query like:
+```sql
+SELECT * FROM course WHERE instructor = ?
+```
+
 You can use this method in your controller to get courses by instructor:
 ```java
 @GetMapping("/instructor/{instructor}")
@@ -272,7 +277,7 @@ public ResponseEntity<List<Course>> getCoursesByInstructor(@PathVariable String 
     return ResponseEntity.ok(courses);
 }
 ```
-## Testing named queries
+## Testing custom queries
 - **Get courses by instructor**:
 ```bash
 curl http://localhost:8080/api/courses/instructor/OSNB
