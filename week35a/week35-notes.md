@@ -1,10 +1,10 @@
 # REST API & Spring Data JPA introduction
 
-Osman Butt - osnb@ek.dk 
+Osman B - osnb@ek.dk 
 
 PROG2 - Datamatiker 3rd semester @ EK - Erhvervsakademi København
 
-**Date**: 25-08-2025
+**Date**: XX-XX-2025
 
 ## Topics
 - Intro to the course and semester plan
@@ -19,7 +19,7 @@ PROG2 - Datamatiker 3rd semester @ EK - Erhvervsakademi København
 
 
 ## Class notes
-- 
+-  
 
 
 ## Peer instructions 
@@ -79,4 +79,4 @@ PROG2 - Datamatiker 3rd semester @ EK - Erhvervsakademi København
  
 
 ## Exercises
-- 
+
