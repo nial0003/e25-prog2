@@ -8,7 +8,8 @@ PROG2 - Datamatiker 3rd semester @ EK - Erhvervsakademi København
 
 ## Topics
 - Intro to the course and semester plan
-- What is a REST web API
+- Exam overview and and dates??
+- What is a REST web API (with examples)
 - How do we build a a REST (web) API using Spring Boot?
 - Review of JDBC from 2nd semester using MySQL
 - Setting up a Spring Boot Application using Spring Data JPA with H2 and/or MySQL database
