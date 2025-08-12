@@ -263,11 +263,158 @@ Cascading operations can be very useful in scenarios where you want to manage th
 - Do I want to manage the lifecycle of child entities through the parent entity?
 If the answer is yes, then cascading operations can be very useful. However, be cautious with cascading deletes, as they can lead to unintended data loss if not handled carefully.
 
+
+## API and service layer
+First, we create a service class to handle the business logic for managing `Order` and `OrderLine` entities. This service will use the repositories to perform CRUD operations and manage relationships.
+
+Since we have a bidirectional relationship, we will create DTOs to avoid infinitely recursive serialization when returning `Order` entities with their associated `OrderLines`.
+
+```java
+public record OrderDto(
+    private Long id;
+    private LocalDate orderDate;
+    private List<OrderLineDto> orderLines;
+) {}
+```
+
+```java
+public record OrderLineDto(
+    private Long id;
+    private String productName;
+    private double price
+) {}
+```
+
+To map between entities and DTOs, we would like to create utility methods that maps between entities and DTOs. For simplicity, we will create these methods in the service class.
+
+```java
+@Service
+public class OrderService {
+    private final OrderRepository orderRepository;
+    private final OrderLineRepository orderLineRepository;
+
+    public OrderService(OrderRepository orderRepository, OrderLineRepository orderLineRepository) {
+        this.orderRepository = orderRepository;
+        this.orderLineRepository = orderLineRepository;
+    }
+
+    // FIND
+    public List<OrderDto> getAllOrders() {
+        return toOrderDtoList(orderRepository.findAll());
+    }
+
+    // FIND by ID
+    public OrderDto getOrderById(Long id) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isPresent()) {
+            return toOrderDto(orderOptional.get());
+        }
+        throw new RuntimeException("Order not found with id: " + id);
+    }
+
+    // CREATE
+    public OrderDto createOrder(OrderDto orderDto) {
+        Order savedOrder = orderRepository.save(toOrderEntity(orderDto));
+        return toOrderDto(savedOrder);
+    }
+
+    // DELETE
+    public void deleteOrder(Long id) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isPresent()) {
+            orderRepository.delete(orderOptional.get());
+        }
+        throw new RuntimeException("Order not found with id: " + id);
+    }
+
+    // Utility method to convert Order to OrderDto
+    public OrderLineDto toOrderLineDto(OrderLine orderLine) {
+        return new OrderLineDto(
+            orderLine.getId(),
+            orderLine.getProductName(),
+            orderLine.getPrice()
+        );
+    }
+
+    public OrderDto toOrderDto(Order order) {
+        Set<OrderLine> orderLines = order.getOrderLine();
+        List<OrderLineDto> orderLineDtos = new ArrayList<>();
+        for (var orderLine : orderLines) {
+            orderLineDtos.add(toOrderLineDto(orderLine));
+        }
+        return new OrderDto(
+            order.getId(),
+            order.getOrderDate(),
+            orderLineDtos
+        );
+    }
+
+    public OrderLine toOrderLineEntity(OrderLineDto orderLineDto) {
+        return new OrderLine(
+            orderLineDto.id(),
+            orderLineDto.productName(),
+            orderLineDto.price()
+        );
+    }
+
+    public Order toOrderEntity(OrderDto orderDto) {
+        Order order = new Order();
+        order.setId(orderDto.id());
+        order.setOrderDate(orderDto.orderDate());
+        for (OrderLineDto orderLineDto : orderDto.orderLines()) {
+            order.addOrderLine(toOrderLineEntity(orderLineDto));
+        }
+        return order;
+    }
+}
+```
+
+The Controller class will handle the HTTP requests and responses. It will use the `OrderService` to perform the necessary operations.
+
+```java
+@RestController
+@RequestMapping("/api/orders")
+public class OrderController {
+    private final OrderService orderService;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<OrderDto>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.getOrderById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
+        return ResponseEntity.ok(orderService.createOrder(orderDto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+This controller provides endpoints to:
+- Get all orders (`GET /api/orders`)
+- Get an order by ID (`GET /api/orders/{id}`)
+- Create a new order (`POST /api/orders`)
+- Delete an order by ID (`DELETE /api/orders/{id}`)
+
+
 ### Summary
 - We have learned how to model One-to-Many and Many-to-One relationships in Spring Data JPA.
 - We started with a unidirectional Many-to-One relationship and then made it bidirectional by adding a `Set<OrderLine>` field in the `Order` entity.
 - We explored the importance of keeping both sides of the relationship in sync and created utility methods to manage the relationship more easily.
-- We also learned about cascading operations and how they can simplify the management of child entities through the parent entity.
+- We have also created a REST API to manage `Order` and `OrderLine` entities using a service layer and DTOs to avoid recursive serialization issues.
+
 
 ## Exercises
 1. **Create a new entity**: Create a new entity called `Course` with fields `id`, `name`, and `description`.
@@ -275,4 +422,10 @@ If the answer is yes, then cascading operations can be very useful. However, be 
 3. **Establish a relationship**: Establish a One-to-Many relationship between `Course` and `CourseOffering`, where a `Course` can have multiple `CourseOfferings`, but each `CourseOffering` belongs to only one `Course`.
 4. **Create repositories**: Create repositories for both `Course` and `CourseOffering`.
 5. **Initialize data**: Create a class that implements `CommandLineRunner` to initialize the database with some dummy data. Create a few `Course` entities and associate multiple `CourseOfferings` with each `Course`.
+6. **Create a REST API**: Create a REST API to manage `Course` and `CourseOffering` entities. Implement endpoints to:
+   - Get all courses
+   - Get a course by ID
+   - Create a new course
+   - Delete a course by ID
+   - Get all course offerings for a specific course
 
