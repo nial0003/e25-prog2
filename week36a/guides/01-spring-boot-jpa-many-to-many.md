@@ -81,7 +81,8 @@ In the above code:
 - The `joinColumns` attribute specifies the foreign key column for the `Student` entity, and the `inverseJoinColumns` attribute specifies the foreign key column for the `Course` entity.
 - The `Set<Course> courses` field in the `Student` entity represents the collection of `Course` entities associated with a `Student`.
 
-Note that `Student` owns the relationship because it contains the `@JoinTable` annotation.
+In a bidirectional Many-to-Many, only one side (the owning side) defines the `@JoinTable`.  
+The other side uses `mappedBy` to avoid creating a duplicate join table.
 
 ---------------
 

@@ -1,8 +1,12 @@
 # Spring Boot Data JPA Test
 
 ## Set up before starting
-## Set up before starting
-- Make sure you have a Spring Boot project, like the one from 
+- Create a new Spring Boot project with the following dependencies:
+  - Spring Web
+  - Spring Data JPA
+  - H2 Database (for testing)
+  - MySQL Driver
+- Ensure you have a MySQL database running if you plan to use it for testing.
 
 ## Introduction
 In this guide, we will explore how to set up DataJpaTest in a Spring Boot application. We will cover the necessary dependencies, how to configure the application properties, and how to write tests for JPA entities using a H2 database.
