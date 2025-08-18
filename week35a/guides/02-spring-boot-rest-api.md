@@ -185,6 +185,34 @@ return ResponseEntity.notFound().build();
 return ResponseEntity.internalServerError().build();
 ```
 
+## Query Parameters
+Query parameters are used to filter or modify the results of a GET request. They are appended to the URL after a question mark (`?`) and are separated by ampersands (`&`). For example, in the URL `http://localhost:8080/api/persons?age=30&city=Copenhagen`, `age` and `city` are query parameters.
+
+You can access query parameters in your controller methods using the `@RequestParam` annotation. Here's an example of how to use query parameters to filter persons by age and city:
+
+```java
+@GetMapping
+public ResponseEntity<List<Person>> getPersonsByAgeAndCity(
+        @RequestParam(required = false) Integer age,
+        @RequestParam(required = false) String city) {
+    
+    List<Person> filteredPersons = new ArrayList<>();
+    for (Person person : persons) {
+        if (age != null && person.getAge() != age) {
+            continue;
+        }
+
+        if (city != null && !person.getAddress().getCity().equalsIgnoreCase(city)) {
+            continue;
+        }
+        filteredPersons.add(person);
+    }
+    
+    return ResponseEntity.ok(filteredPersons);
+}
+```
+In this example, the `getPersonsByAgeAndCity` method accepts two optional query parameters: `age` and `city`. If they are provided, the method filters the list of persons based on these parameters. If no parameters are provided, it returns all persons.
+
 ---
 
 ## Exercise
