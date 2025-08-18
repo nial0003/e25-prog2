@@ -254,49 +254,80 @@ curl -X PUT -H "Content-Type: application/json" -d '{"name":"UPDATED COURSE", "i
 curl -X DELETE http://localhost:8080/api/courses/1
 ```
 
-## Using custom queries
-Custom queries allow you to define queries in a more readable way. We define custom queries in the repository interface by simply defining methods that follow a naming convention. Spring Data JPA will automatically implement these methods based on the method names. In this example, we will create a custom query to find courses by their instructor. Let's add a custom query to our `Course` entity to find courses by instructor.
+## Query methods (derived queries)
+Derived queries are a powerful feature of Spring Data JPA that allow you to create queries
+**just by writing method names** in your repository interface. 
+This means you can define custom queries without writing SQL.
+
+Spring Data JPA parses the method name into:
+- **Subject** → what you want to return (e.g., `find`, `count`, `delete`)
+- **Separator** → always starts with `By` (e.g., `findBy…`, `findAllBy…`, `findFirstBy…`)
+- **Predicate** → the condition(s) (e.g., `Name`, `AgeBetween`, `InstructorContaining`)
+
+**Formula**: `Subject` + `Separator` + `Predicate`
+
+To demonstrate this, let's add a method to our `CourseRepository` to find courses by instructor name: 
 ```java
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    List<Course> findByInstructor(String instructor);
+    List<Course> findByInstructorContaining(String instructor);
 }
 ```
-- The method `findByInstructor` will automatically generate a query that retrieves all courses taught by the specified instructor. Ie. it will generate a query like:
+- The method `findByInstructorContaining` will automatically generate a query that retrieves all courses whose instructor name contains the specified string. The `Containing` keyword allows for partial matches - and produces a query like:
 ```sql
-SELECT * FROM course WHERE instructor = ?
+SELECT * FROM course WHERE instructor LIKE ?
 ```
 
-You can use this method in your controller to get courses by instructor:
+### Using query parameters
+A query parameter can be passed to the endpoint to filter courses by instructor name. We can modify our `getAllCourses` method in `CourseController` to accept an optional query parameter:
+
 ```java
-@GetMapping("/instructor/{instructor}")
-public ResponseEntity<List<Course>> getCoursesByInstructor(@PathVariable String instructor) {
-    List<Course> courses = courseRepository.findByInstructor(instructor);
-    if (courses.isEmpty()) {
-        return ResponseEntity.notFound().build();
+@RestController
+@RequestMapping("/api/courses")
+public class CourseController {
+    private final CourseRepository courseRepository;
+
+    public CourseController(CourseRepository courseRepository) {
+        this.courseRepository = courseRepository;
     }
-    return ResponseEntity.ok(courses);
+
+    @GetMapping
+    public ResponseEntity<List<Course>> getAllCourses(@RequestParam(required = false) String instructor) {
+        if (instructor != null) {
+            return ResponseEntity.ok(courseRepository.findByInstructorContaining(instructor));
+        }
+        return ResponseEntity.ok(courseRepository.findAll());
+    }
+
+    // Other CRUD operations...
 }
 ```
-## Testing custom queries
-- **Get courses by instructor**:
+- The `@RequestParam(required = false)` annotation allows the `instructor` parameter to be optional. If it is provided, the method will filter courses by instructor name; otherwise, it will return all courses.
+
+So the endpoint can now be used in two ways:
+- To get all courses:
 ```bash
-curl http://localhost:8080/api/courses/instructor/OSNB
+curl http://localhost:8080/api/courses
 ```
-- This will return all courses taught by "OSNB".
-```json
-[
-    {
-        "id": 1,
-        "name": "PROG2",
-        "instructor": "OSNB"
-    },
-    {
-        "id": 2,
-        "name": "TEK2",
-        "instructor": "OSNB"
-    }
-]
+- To filter courses by instructor name:
+```bash
+curl http://localhost:8080/api/courses?instructor=OSN
 ```
+ - This will return all courses that contains `OSN`.
+    ```json
+    [
+        {
+            "id": 1,
+            "name": "PROG2",
+            "instructor": "OSNB"
+        },
+        {
+            "id": 2,
+            "name": "TEK2",
+            "instructor": "OSNB"
+        }
+    ]
+    ```
+
 
 ## Conclusion
 In this tutorial, we have created a simple Spring Boot REST API with Spring Data JPA to manage courses. We have implemented all CRUD operations and tested them using both a web browser and the terminal. This is a foundational step in building more complex applications with Spring Boot and JPA.
