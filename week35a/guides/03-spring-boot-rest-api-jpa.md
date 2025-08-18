@@ -14,11 +14,11 @@ We want to create a REST API with MySQL for managing **students**, exposing the 
 
 | Method | Endpoint             | Description               |
 |--------|----------------------|---------------------------|
-| GET    | `/api/students`       | Get all students           |
-| GET    | `/api/students/{id}`  | Get a student by ID        |
-| POST   | `/api/students`       | Create a new student       |
-| PUT    | `/api/students/{id}`  | Update a student by ID     |
-| DELETE | `/api/students/{id}`  | Delete a student by ID     |
+| GET    | `/api/courses`       | Get all courses           |
+| GET    | `/api/courses/{id}`  | Get a course by ID        |
+| POST   | `/api/courses`       | Create a new course       |
+| PUT    | `/api/courses/{id}`  | Update a course by ID     |
+| DELETE | `/api/courses/{id}`  | Delete a course by ID     |
 
 ## Creating entities
 Let's start by creating an java class named `Course`.

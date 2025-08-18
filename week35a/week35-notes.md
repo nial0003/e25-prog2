@@ -23,6 +23,8 @@ PROG2 - Datamatiker 3rd semester @ EK - Erhvervsakademi København
 -  
 
 
+---
+
 ## Peer instructions 
 ### 1. What does the `@Entity` annotation do?
 - a. Marks a class as a Spring bean  
