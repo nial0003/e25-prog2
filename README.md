@@ -38,3 +38,5 @@
 | 50   | Project                   | Semester project                                                     |
 | 50   | Project                   | Semester project                                                     |
 | 51   | Project                   | Semester project                                                     |
+
+<!-- TODO: ADD Exercise column -->
