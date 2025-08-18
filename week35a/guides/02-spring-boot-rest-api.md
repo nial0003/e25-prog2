@@ -211,7 +211,11 @@ public ResponseEntity<List<Person>> getPersonsByAgeAndCity(
     return ResponseEntity.ok(filteredPersons);
 }
 ```
-In this example, the `getPersonsByAgeAndCity` method accepts two optional query parameters: `age` and `city`. If they are provided, the method filters the list of persons based on these parameters. If no parameters are provided, it returns all persons.
+In this example, the `getPersonsByAgeAndCity`:
+- `/api/persons` → returns all persons
+- `/api/persons?age=30` → only persons with age 30
+- `/api/persons?city=copenhagen` → only persons living in Copenhagen
+- `/api/persons?age=30&city=copenhagen` → only persons with age 30 and city Copenhagen
 
 ---
 
