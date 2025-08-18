@@ -3,7 +3,7 @@
 ## Introduction
 In this guide, we will explore how to model One-to-Many and Many-to-One relationships in Spring Data JPA. We will cover the necessary annotations, how to set up the entities, and how to manage these relationships.
 
-One-to-Many / Many-to-One relationships are common in database design, where one entity can be associated with multiple instances of another entity. For example, a `OrderLine` can have multiple `Orders`, a `Course` can have multiple `CourseOfferings`, a `Student` can have multiple `Enrollments`, etc.
+One-to-Many / Many-to-One relationships are common in database design, where one entity can be associated with multiple instances of another entity. For example, a `Order` can have multiple `OrderLines`, a `Course` can have multiple `CourseOfferings`, a `Student` can have multiple `Enrollments`, etc.
 
 ## Setup
 - Create a Spring Boot project with Spring web and Spring Data JPA, H2 database and MySQL dependencies - name the project `one-to-many`
@@ -35,7 +35,7 @@ CREATE TABLE orders (
     order_date DATE
 );
 
-CREATE TABLE order_line (
+CREATE TABLE order_lines (
     id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     productName VARCHAR(255) NOT NULL,
     price FLOAT(53) NOT NULL,
@@ -188,7 +188,8 @@ public class Order {
 ```
 In a bidirectional JPA relationship, there are two sides:
 - **The owning side** – the side that holds the foreign key (the `OrderLine` entity, eg. the class that has `@ManyToOne`).
-- **The inverse side** – the side with mappedBy (`@OneToMany` in `Order`).
+- **The inverse side** – the side with mappedBy (`@OneToMany` in `Order`). The `mappedBy` attribute tells JPA that the `OrderLine` entity owns the relationship 
+(because it has the foreign key column). 
 
 ##### Testing the Rest API with Bidirectional Relationship
 If we now test the application in the browser, cURL or Postman, we get a weird repsonse:
@@ -210,8 +211,8 @@ public record OrderLineDto (
 
 // OrderDto.java
 public record OrderDto (
-    Long id;
-    LocalDate orderDate;
+    Long id,
+    LocalDate orderDate,
     Set<OrderLineDto> orderLines
 ) {}
 ```
@@ -289,14 +290,11 @@ When you have a bidirectional relationship, you can also use cascading operation
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderLine> orderLines = new HashSet<>();
 ```
-- `cascade = CascadeType.ALL` means that all cascade operations saving, updating, and deleting will be applied to the `OrderLine` entities when the `Order` is saved or deleted. Note that when we remove an `Order`, the foreign key reference in the `OrderLine` will be set to null, but the `OrderLine` entities will not be deleted from the database.
-- `orphanRemoval = true` means that if an `OrderLine` is removed from the `Order`'s collection, it will be deleted from the database. This is useful for managing the lifecycle of child entities and ensuring that they are removed when no longer needed.
-
-
-```java
-@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-private Set<OrderLine> orderLines = new HashSet<>();
-```
+- With `cascade = CascadeType.ALL` only: when you delete an `Order`, the associated 
+  `OrderLine`s will remain in the database (their `order_id` may be set to `null`).
+- With `cascade = CascadeType.ALL, orphanRemoval = true`: when you delete an `Order` 
+  or remove an `OrderLine` from its collection, the `OrderLine` will be physically 
+  deleted from the database.
 
 This means that we can change the `InitData` class to add `OrderLines` to an `Order` without having to save each `OrderLine` individually. For example:
 
@@ -378,7 +376,7 @@ orderRepository.save(order); // This will save the Order and line2
 #### Removing an `OrderLine` from an `Order`
 ```java
 Order order = orderRepository.findById(1L).orElseThrow();
-OrderLine line1 = order.getOrderLines().get(0); // Assuming that it is present
+OrderLine line1 = order.getOrderLines().iterator().next(); // Assuming that it is present
 order.removeOrderLine(line1); // This automatically sets the Order in line1 to null and
 orderRepository.save(order); // This will save the Order and remove line1 foreign key reference
 ```
@@ -428,7 +426,7 @@ public class OrderService {
     }
 
     // CREATE
-    public OrderDto createOrder(OrderDto OrderDto) {
+    public OrderDto createOrder(OrderDto orderDto) {
         Order newOrder = toOrderEntity(OrderDto);
         for (var orderLines : newOrder.getOrderLines()) {
             orderLines.setId(null); // Make sure to set ID to null for new OrderLines
@@ -475,7 +473,7 @@ public class OrderService {
         return orderLine;
     }
 
-    public Order toOrderEntity(OrderDto OrderDto) {
+    public Order toOrderEntity(OrderDto orderDto) {
         Order order = new Order();
         order.setId(OrderDto.id());
         order.setOrderDate(OrderDto.orderDate());
@@ -512,7 +510,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto OrderDto) {
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
         return ResponseEntity.ok(orderService.createOrder(OrderDto));
     }
 
@@ -532,12 +530,13 @@ This controller provides endpoints to:
 
 
 ### Detached entities
-An entity is detached when it's no longer managed by the persistence context (i.e., EntityManager). This often happens when:
-- The entity was loaded in one transaction/session and used in another.
-- You manually set the id on an object assuming it's a "new" entity.
-- You're trying to persist() an entity that already exists in the DB (based on its ID).
+In JPA, the `save()` method works like this:
+- If the ID is `null` → it performs an **insert**.
+- If the ID is not `null` and the entity is managed → it performs an **update**.
+- If the ID is not `null` but the entity is detached (not in the persistence context) → 
+  you get a `PersistentObjectException: detached entity passed to persist`.
 
-In our example, if we try to call `orderService.createOrder(OrderDto OrderDto)` and the `OrderLineDtos` already have an ID set, we could get the following exception:
+In our example, if we try to call `orderService.createOrder(OrderDto orderDto)` and the `OrderLineDtos` already have an ID set, we could get the following exception:
 ```bash
 org.hibernate.PersistentObjectException: detached entity passed to persist: org.example.onetomany.models.OrderLine
 ```
@@ -548,6 +547,10 @@ To avoid this, we should ensure that when creating a new `Order` with `OrderLine
 **How to avoid this exception:**
 - Only pass managed or new (transient) entities to save(), not detached ones (entities that have an ID set).
 - Be cautious with entities pulled from previous sessions/transactions or external sources like DTOs, make sure they are not already persisted in the database.
+
+
+### Extra: moving DTO mapping to a separate class
+To keep the `OrderService` class clean, you can move the DTO mapping logic to a separate class. This is a good practice to separate concerns and keep the service layer focused on business logic. You can create a `OrderMapper` class in the `org.example.onetomany.mappers` package, and inject it into the `OrderService`. This is left as an exercise for you to implement.
 
 ### Summary
 - We have learned how to model One-to-Many and Many-to-One relationships in Spring Data JPA.
