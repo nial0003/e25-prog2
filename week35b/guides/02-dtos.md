@@ -1,135 +1,226 @@
 # DTOs (Data Transfer Objects)
 
 ## What are DTOs?
-DTOs, or Data Transfer Objects, are plain Java objects that are used to transfer data between different layers of an application, particularly between the service layer and the presentation layer. They are often used to encapsulate data that needs to be sent over the network or returned in API responses.
+DTOs, or Data Transfer Objects, are plain Java objects used to transfer data between different layers of an application, especially between the service layer and the presentation layer.
+They help to:
+- Avoid circular references when serializing bidirectional JPA relationships.
+- Prevent exposing unnecessary or sensitive fields to the client.
+- Provide a clean, API-focused data model that can evolve independently of the database schema.
 
 ## Problem
-When dealing with Spring Data JPA and bidirectional relationships, such as one-to-one relationships, we often face the issue of circular references. This can lead to problems when serializing entities to JSON, as the serializer enters an infinite loop trying to resolve the references.
+When working with Spring Data JPA and bidirectional relationships such as Order ↔ OrderLine, you can run into circular reference issues.
+For example:
+- Order has a collection of OrderLines
+- Each OrderLine points back to its Order
 
-Another common issue is that entities often contain more data than needed for a specific use case, or they may expose sensitive information (like passwords) that should not be sent to the client.
+If you try to serialize this directly to JSON, you’ll get infinite recursion.
+
+Also, entities often have more data than we want to expose in API responses. For example, maybe Order has internal fields like customerId or status that you don’t want the client to see.
+
+## What is a Java `record`?
+A record in Java is a special kind of class that is used to create immutable data objects.
+Records are immutable data carriers — once created, their fields cannot be reassigned.
+Records automatically generate boilerplate code like getters, equals, hashCode, and toString methods, making them ideal for DTOs.
+They are defined using the `record` keyword.
+For example:
+```java
+public record SimpleRecord(Long id, String name) {}
+```
+This creates a record with two fields: `id` and `name`. You can create an instance of this record like this:
+```java
+SimpleRecord record = new SimpleRecord(1L, "Example");
+```
+We can access the fields using the automatically generated getters:
+```java
+Long id = record.id(); // 1L
+String name = record.name(); // "Example"
+```
+Notice how we can access the fields using the method names that match the field names.
+
 
 ## DTO Solution
-To solve these problems, we can use DTOs. By creating a DTO for our entities, we can control exactly what data is sent to the client, avoiding circular references and sensitive data exposure.
+Instead of using `@JsonManagedReference` or `@JsonBackReference` to handle circular references, we can create DTOs that represent only the data we want to expose in our API. We will create DTOs by using Java `records` that represent the data we want to expose in our API.
 
-If we consider the `Student` and `StudentProfile` entities from the previous example, we can create a DTO for each entity:
+First remove the `@JsonManagedReference` and `@JsonBackReference` annotations from the `Order` and `OrderLine` entities. This will prevent Jackson from trying to serialize the circular references.
 
-```java
-public class StudentDTO {
-    private Long id;
-    private String name;
-    private String email;
-    private StudentProfileDTO profile;
-    // Getters and Setters
-}
-````
+Create the following DTOs in the `org.example.onetomany.dtos` package:
 
 ```java
-public class StudentProfileDTO {
-    private Long id;
-    private String bio;
-    // Getters and Setters
+public record OrderDto (
+    Long id,
+    LocalDate orderDate,
+    Set<OrderLineDto> orderLines
+) {}
+```
+
+```java
+public record OrderLineDto (
+    Long id,
+    String productName,
+    double price
+) {}
+```
+
+Now, when we fetch an `Order` entity, we can convert it to a `OrderDto` before returning it in the API response. This way, we avoid circular references and control the data being sent to the client. 
+
+Create a new mapper class in the package `org.example.onetomany.mappers` to handle the conversion between entities and DTOs:
+
+```java
+public class OrderMapper {
+
+    public static OrderLineDto toOrderLineDto(OrderLine orderLine) {
+        return new OrderLineDto(
+                orderLine.getId(),
+                orderLine.getProductName(),
+                orderLine.getPrice()
+        );
+    }
+
+    public static OrderDto toOrderDto(Order order) {
+        Set<OrderLine> orderLines = order.getOrderLines();
+        Set<OrderLineDto> orderLineDtos = new HashSet<>();
+        for (var orderLine : orderLines) {
+            orderLineDtos.add(toOrderLineDto(orderLine));
+        }
+        return new OrderDto(
+                order.getId(),
+                order.getOrderDate(),
+                orderLineDtos
+        );
+    }
+
+    public static OrderLine toOrderLineEntity(OrderLineDto orderLineDto) {
+        OrderLine orderLine = new OrderLine();
+        orderLine.setId(orderLineDto.id());
+        orderLine.setProductName(orderLineDto.productName());
+        orderLine.setPrice(orderLineDto.price());
+        return orderLine;
+    }
+
+    public static Order toOrderEntity(OrderDto orderDto) {
+        Order order = new Order();
+        order.setId(orderDto.id());
+        order.setOrderDate(orderDto.orderDate());
+        for (OrderLineDto orderLineDto : orderDto.orderLines()) {
+            order.addOrderLine(toOrderLineEntity(orderLineDto));
+        }
+        return order;
+    }
 }
 ```
 
-Now, when we fetch a `Student` entity, we can convert it to a `StudentDTO` before returning it in the API response. This way, we avoid circular references and control the data being sent to the client. The conversion should be done in the service layer.
+We will refactor the service layer to use these DTOs instead of the entity classes directly. This keeps our service layer clean and focused on business logic, while the DTOs handle the data transfer concerns.
 
 ```java
 @Service
-public class StudentService {
-    @Autowired
-    private StudentRepository studentRepository;
+public class OrderService {
+    private final OrderRepository orderRepository;
 
-    public List<StudentDTO> getAllStudents() {
-        List<Student> students = studentRepository.findAll();
-        List<StudentDTO> studentDTOs = new ArrayList<>();
-        for (Student student : students) {
-            StudentDTO dto = convertToDTO(student);
-            studentDTOs.add(dto);
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    // FIND
+    public List<OrderDto> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        List<OrderDto> orderDtos = new ArrayList<>();
+        for (Order order : orders) {
+            orderDtos.add(OrderMapper.toOrderDto(order));
         }
-        return studentDTOs;
+        return orderDtos;
     }
 
-    public StudentDTO getStudentById(Long id) {
-        Optional<Student> studentOptional = studentRepository.findById(id);
-        if (studentOptional.isPresent()) {
-            return convertToDTO(studentOptional.get());
+    // FIND by ID
+    public OrderDto getOrderById(Long id) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isPresent()) {
+            return OrderMapper.toOrderDto(orderOptional.get());
         }
-        return null;
+        throw new RuntimeException("Order not found with id: " + id);
     }
 
-    private StudentDTO convertToDTO(Student student) {
-        StudentDTO dto = new StudentDTO();
-        dto.setId(student.getId());
-        dto.setName(student.getName());
-        dto.setEmail(student.getEmail());
-        dto.setProfile(convertToProfileDTO(student.getProfile()));
-        return dto;
+    // CREATE
+    public OrderDto createOrder(OrderDto orderDto) {
+        Order newOrder = OrderMapper.toOrderEntity(orderDto);
+        for (var orderLine : newOrder.getOrderLines()) {
+            orderLine.setId(null); // Make sure to set ID to null for new OrderLines
+        }
+        return OrderMapper.toOrderDto(orderRepository.save(newOrder));
     }
 
-    private StudentProfileDTO convertToProfileDTO(StudentProfile profile) {
-        StudentProfileDTO dto = new StudentProfileDTO();
-        dto.setId(profile.getId());
-        dto.setBio(profile.getBio());
-        return dto;
+    // DELETE
+    public void deleteOrder(Long id) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isPresent()) {
+            orderRepository.delete(orderOptional.get());
+        }
+        throw new RuntimeException("Order not found with id: " + id);
+    }
+
+    public OrderDto updateOrder(Long id, OrderDto orderDto) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isPresent()) {
+            Order existingOrder = orderOptional.get();
+            existingOrder.setOrderDate(orderDto.orderDate());
+            existingOrder.getOrderLines().clear(); // Clear existing OrderLines
+            for (var orderLine : orderDto.orderLines()) {
+                OrderLine newOrderLine = OrderMapper.toOrderLineEntity(orderLine);
+                newOrderLine.setId(null); // Make sure to set ID to null for new OrderLines
+                existingOrder.addOrderLine(newOrderLine); // Add new OrderLines
+            }
+            return OrderMapper.toOrderDto(orderRepository.save(existingOrder));
+        }
+        throw new RuntimeException("Order not found with id: " + id);
     }
 }
 ```
-So now our  controller layer can remain clean and focused on handling HTTP requests, while the service layer handles the business logic and data transformation.
+
+We then need to update the controller to use the `OrderDto` instead of the `Order` entity directly. This keeps our API responses clean and focused on the data we want to expose.
 
 ```java
 @RestController
-@RequestMapping("/api/students")
-public class StudentController {
+@RequestMapping("/api/orders")
+public class OrderController {
+    private final OrderService orderService;
 
-    private StudentService studentService;
-
-    public StudentController(StudentService studentService) {
-        this.studentService = studentService;
+    public OrderController(OrderService orderService) {
+        this.orderService = orderService;
     }
 
     @GetMapping
-    public List<StudentDTO> getAllStudents() {
-        return studentService.getAllStudents();
+    public ResponseEntity<List<OrderDto>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StudentDTO> getStudentById(@PathVariable Long id) {
-        StudentDTO studentDTO = studentService.getStudentById(id);
-        if (studentDTO != null) {
-            return ResponseEntity.ok(studentDTO);
-        }
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.getOrderById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
+        return ResponseEntity.ok(orderService.createOrder(orderDto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<OrderDto> updateOrder(@PathVariable Long id, @RequestBody OrderDto orderDto) {
+        return ResponseEntity.ok(orderService.updateOrder(id, orderDto));
     }
 }
 ```
+This way, the controller layer is clean and only deals with DTOs, while the service layer handles the conversion between entities and DTOs.
 
 This approach allows us to keep our entities clean and focused on the database representation, while DTOs handle the data transfer concerns. It also makes it easier to change the API response structure without affecting the underlying entity model.
 
 Furthermore it solves the problem of circular references.
 
-## Using `record`s for DTOs
-In modern Java, you can also use records to define DTOs. Records are a special kind of class in Java that are immutable and provide a concise way to define data carriers. Here's how you can define the `StudentDTO` and `StudentProfileDTO` using records:
-```java
-public record StudentDTO(Long id, String name, String email, StudentProfileDTO profile) {}
-
-public record StudentProfileDTO(Long id, String bio) {}
-```
-This approach is more concise and leverages the benefits of immutability, making it a good choice for DTOs.
-
-### How do we instantiate and use records?
-You can instantiate a record by providing the values for its components in the constructor-like syntax. Here's how you can create an instance of `StudentDTO` and access its fields:
-```java
-StudentProfileDTO profile = new StudentProfileDTO(1L, "Ananas pizza is a crime");
-StudentDTO student = new StudentDTO(1L, "OSNB", "osnb@example.com", profile);
-System.out.println("Student Name: " + student.name());
-System.out.println("Profile Bio: " + student.profile().bio());
-```
 
 ## Summary
 - **DTOs** are used to transfer data between layers, avoiding circular references and sensitive data exposure.
-- **Service Layer** handles the conversion from entities to DTOs, keeping the controller layer clean.
-
-## Exercises
-1. Create an ENUM `Gender` with values `MALE`, `FEMALE`, and `OTHER`. Add a field of type `Gender` to the `StudentProfileDTO` and update the service layer accordingly.
-2. Refactor the dtos in the example to use records instead.
-3. Update the service layer to use the new record-based DTOs.
+- **Service Layer** can talk directly with entities, but only return DTOs.

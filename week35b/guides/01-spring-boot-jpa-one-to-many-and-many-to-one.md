@@ -197,57 +197,47 @@ If we now test the application in the browser, cURL or Postman, we get a weird r
 [{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines":[{"id":2,"productName":"Product 2","price":20.49,"order":{"id":1,"orderDate":"2025-08-18","orderLines
 ```
 This is because we have a circular reference between `Order` and `OrderLine`. When the JSON serializer tries to serialize the `Order` entity, it encounters the `orderLines` field, which contains `OrderLine` entities that reference back to the `Order`, creating an infinite loop.
-To solve this, we can use DTOs (Data Transfer Objects) to control the data being sent to the client and avoid circular references. We will create a DTO for `Order` and `OrderLine` entities.
 
-Create the following two DTOs in the `org.example.onetomany.dto` package:
+#### Solving Circular References
+This is a common problem when dealing with bidirectional relationships in JPA. The JSON serializer tries to serialize the entire object graph, which leads to circular references.
 
-```java
-// OrderLineDto.java
-public record OrderLineDto (
-    Long id,
-    String productName,
-    double price
-) {}
-
-// OrderDto.java
-public record OrderDto (
-    Long id,
-    LocalDate orderDate,
-    Set<OrderLineDto> orderLines
-) {}
-```
-Now, we can modify the `OrderController` to return the DTOs instead of the entities:
+We can solve this by using `@JsonBackReference` and `@JsonManagedReference` annotations from the Jackson library, which is used by Spring Boot for JSON serialization.
 
 ```java
-@RestController
-@RequestMapping("/api/orders")
-public class OrderController {
+@Entity
+@Table(name = "orders")
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private LocalDate orderDate;
 
-    private final OrderRepository orderRepository;
-
-    public OrderController(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
-    }
-
-    @GetMapping
-    public ResponseEntity<List<OrderDto>> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-
-        List<OrderDto> orderDtos = new ArrayList<>();
-        for (Order order : orders) {
-            Set<OrderLineDto> orderLineDtos = new HashSet<>();
-            for (OrderLine orderLine : order.getOrderLines()) {
-                OrderLineDto orderLineDto = new OrderLineDto(orderLine.getId(), orderLine.getProductName(), orderLine.getPrice());
-                orderLineDtos.add(orderLineDto);
-            }
-            orderDtos.add(new OrderDto(order.getId(), order.getOrderDate(), orderLineDtos));
-        }
-
-        return ResponseEntity.ok(orderDtos);
-    }
+    @OneToMany(mappedBy = "order")
+    @JsonManagedReference // This indicates that this is the parent side of the relationship
+    private Set<OrderLine> orderLines = new HashSet<>();
+    // Getters and Setters
 }
 ```
-This approach allows us to control the data being sent to the client and avoid circular references. When running the endpoint we get the following response:
+
+
+```java
+@Entity
+@Table(name = "order_lines") // This specifies the table name in the database
+public class OrderLine {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String productName;
+    private double price;
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false) // This specifies the foreign key column in the order_line table
+    @JsonBackReference
+    private Order order;
+    // Getters and Setters
+}
+```
+
+Now if we run the application and access the endpoint `http://localhost:8080/api/orders`, we will get a response without circular references:
 ```json
 [
     {
@@ -255,20 +245,19 @@ This approach allows us to control the data being sent to the client and avoid c
         "orderDate": "2025-08-18",
         "orderLines": [
             {
-                "id": 1,
-                "productName": "Product 1",
-                "price": 10.99
-            },
-            {
                 "id": 2,
                 "productName": "Product 2",
                 "price": 20.49
+            },
+            {
+                "id": 1,
+                "productName": "Product 1",
+                "price": 10.99
             }
         ]
     }
 ]
 ```
-In this response does not contain any circular references, and the `Order` entity is represented as a DTO with only the necessary fields.
 
 Notice that this produces the following SQL query:
 ```sql
@@ -283,11 +272,14 @@ This is because the `orderLines` field is **lazily** loaded by default. If you w
 private Set<OrderLine> orderLines = new HashSet<>();
 ```
 
+It is also possible to use DTOs to control the data being sent to the client and avoid circular references. We will explore that later.
+
 ### Cascading operations from parent entity
 When you have a bidirectional relationship, you can also use cascading operations to automatically persist or delete associations with child entities when the parent entity is saved, updated or deleted. For example, if you want to automatically save `OrderLines` when saving an `Order`, you can use the `cascade` attribute in the `@OneToMany` annotation:
 
 ```java
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // This indicates that this is the parent side of the relationship
     private Set<OrderLine> orderLines = new HashSet<>();
 ```
 - With `cascade = CascadeType.ALL` only: when you delete an `Order`, the associated 
@@ -324,7 +316,7 @@ public void run(String... args) {
 - This will save the `Order` and its associated `OrderLines` in a single operation, thanks to the cascading effect.
 - Note that we need to sync both sides of the relationship by setting the `Order` in each `OrderLine` and adding the `OrderLines` to the `Order`. This ensures that both sides of the relationship are aware of each other.
 
-### Creating a utility method for sync'ing relationships
+### Keeping both sides of the relationship in sync
 To avoid repeating the code for syncing both sides of the relationship, we can create a utility method in the `Order` class to handle this (since it is the parent entity). This method will add an `OrderLine` to the `Order` and automatically set the `Order` in the `OrderLine`.
 
 This is not strictly necessary, but it helps to keep the code clean and maintainable. Here’s how you can implement this:
@@ -356,8 +348,31 @@ public class OrderLine {
 }
 ```
 
-Note that all operations on the `OrderLines` collection should be done through the `Order` class to ensure that both sides of the relationship are always in sync.
-This way, you can add or remove `OrderLines` from an `Order` without having to manually set the `Order` in each `OrderLine`. For example:
+Note that all operations on the `OrderLines` collection should be done through the `Order` class to ensure that both sides of the relationship are always in sync. This way, you can add or remove `OrderLines` from an `Order` without having to manually set the `Order` in each `OrderLine`.
+
+We can then update the `InitData` class to use these utility methods:
+
+```java
+public void run(String... args) {
+    OrderLine line1 = new OrderLine();
+    line1.setProductName("Product 1");
+    line1.setPrice(10.99);
+
+    OrderLine line2 = new OrderLine();
+    line2.setProductName("Product 2");
+    line2.setPrice(20.49);
+
+    Order order = new Order();
+    order.setOrderDate(LocalDate.now());
+
+    // Sync both sides of the relationship
+    order.addOrderLine(line1); // This automatically sets the Order in line1 and adds it
+    order.addOrderLine(line2); // This automatically sets the Order in line2 and adds
+
+    // This will also save line1 and line2 automatically
+    orderRepository.save(order);
+}
+```
 
 #### Adding an `Order` with `OrderLines`
 ```java
@@ -373,7 +388,7 @@ OrderLine line2 = new OrderLine();
 order.addOrderLine(line2); // This automatically sets the Order in line2 and adds it
 orderRepository.save(order); // This will save the Order and line2
 ```
-#### Removing an `OrderLine` from an `Order`
+#### Removing a single `OrderLine` from an `Order`
 ```java
 Order order = orderRepository.findById(1L).orElseThrow();
 OrderLine line1 = order.getOrderLines().iterator().next(); // Assuming that it is present
@@ -391,9 +406,9 @@ If the answer is yes, then cascading operations can be very useful. However, be 
 
 
 ## API and service layer
-First, we create a **service layer** to handle the business logic for managing `Order` and `OrderLine` entities. This service will use the repositories to perform CRUD operations and manage relationships.
+At the moment, we have a simple REST API that allows us to retrieve all `Order` entities and their associated `OrderLines`. However, we need to create a more structured service layer to handle the business logic and manage the relationships between `Order` and `OrderLine` entities.
 
-Since we have a bidirectional relationship, we will create DTOs to avoid infinitely recursive serialization when returning `Order` entities with their associated `OrderLines`.
+First, we create a **service layer** to handle the business logic for managing `Order` and `OrderLine` entities. This service will use the repositories to perform CRUD operations and manage relationships.
 
 Create the following service class in the `org.example.onetomany.services` package:
 
@@ -402,39 +417,29 @@ Create the following service class in the `org.example.onetomany.services` packa
 public class OrderService {
     private final OrderRepository orderRepository;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 
-    // FIND
-    public List<OrderDto> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        List<OrderDto> orderDtos = new ArrayList<>();
-        for (Order order : orders) {
-            orderDtos.add(toOrderDto(order));
-        }
-        return orderDtos;
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 
-    // FIND by ID
-    public OrderDto getOrderById(Long id) {
+    public Order getOrderById(Long id) {
         Optional<Order> orderOptional = orderRepository.findById(id);
         if (orderOptional.isPresent()) {
-            return toOrderDto(orderOptional.get());
+            return orderOptional.get();
         }
         throw new RuntimeException("Order not found with id: " + id);
     }
 
-    // CREATE
-    public OrderDto createOrder(OrderDto orderDto) {
-        Order newOrder = toOrderEntity(OrderDto);
-        for (var orderLines : newOrder.getOrderLines()) {
+    public Order createOrder(Order order) {
+        for (var orderLines : order.getOrderLines()) {
             orderLines.setId(null); // Make sure to set ID to null for new OrderLines
         }
-        return toOrderDto(orderRepository.save(newOrder));
+        return orderRepository.save(order);
     }
 
-    // DELETE
     public void deleteOrder(Long id) {
         Optional<Order> orderOptional = orderRepository.findById(id);
         if (orderOptional.isPresent()) {
@@ -443,50 +448,30 @@ public class OrderService {
         throw new RuntimeException("Order not found with id: " + id);
     }
 
-    // Utility method to convert Order to OrderDto
-    public OrderLineDto toOrderLineDto(OrderLine orderLine) {
-        return new OrderLineDto(
-                orderLine.getId(),
-                orderLine.getProductName(),
-                orderLine.getPrice()
-        );
-    }
-
-    public OrderDto toOrderDto(Order order) {
-        Set<OrderLine> orderLines = order.getOrderLines();
-        Set<OrderLineDto> OrderLineDtos = new HashSet<>();
-        for (var orderLine : orderLines) {
-            OrderLineDtos.add(toOrderLineDto(orderLine));
+    public Order updateOrder(Long id, Order order) {
+        Optional<Order> orderOptional = orderRepository.findById(id);
+        if (orderOptional.isPresent()) {
+            Order existingOrder = orderOptional.get();
+            existingOrder.setOrderDate(order.getOrderDate());
+            existingOrder.getOrderLines().clear(); // Clear existing OrderLines
+            for (var orderLine : order.getOrderLines()) {
+                orderLine.setId(null); // Make sure to set ID to null for new OrderLines
+                existingOrder.addOrderLine(orderLine); // Add new OrderLines
+            }
+            return orderRepository.save(existingOrder);
         }
-        return new OrderDto(
-                order.getId(),
-                order.getOrderDate(),
-                OrderLineDtos
-        );
-    }
-
-    public OrderLine toOrderLineEntity(OrderLineDto orderLineDto) {
-        OrderLine orderLine = new OrderLine();
-        orderLine.setId(orderLineDto.id());
-        orderLine.setProductName(orderLineDto.productName());
-        orderLine.setPrice(orderLineDto.price());
-        return orderLine;
-    }
-
-    public Order toOrderEntity(OrderDto orderDto) {
-        Order order = new Order();
-        order.setId(OrderDto.id());
-        order.setOrderDate(OrderDto.orderDate());
-        for (OrderLineDto orderLineDto : OrderDto.orderLines()) {
-            order.addOrderLine(toOrderLineEntity(orderLineDto));
-        }
-        return order;
+        throw new RuntimeException("Order not found with id: " + id);
     }
 }
-````
+```
 
-The Controller class will handle the HTTP requests and responses. It will use the `OrderService` to perform the necessary operations.
+Notice that:
+- The `OrderService` class uses the `OrderRepository` to perform CRUD operations on `Order` entities.
+- The `createOrder` method ensures that the `OrderLine` entities are not detached (see below) by setting their IDs to `null` before saving. This prevents the `PersistentObjectException` when trying to persist detached entities.
+- The `updateOrder` method clears the existing `OrderLines` and adds new ones to ensure that the relationship is properly managed.
+- The `deleteOrder` method checks if the `Order` exists before deleting it, throwing an exception if it does not.
 
+The Controller class will handle the HTTP requests and responses only. Instead of injecting the `OrderRepository`, it will use the `OrderService` to perform the necessary operations.
 
 ```java
 @RestController
@@ -500,24 +485,29 @@ public class OrderController {
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderDto>> getAllOrders() {
+    public ResponseEntity<List<Order>> getAllOrders() {
         return ResponseEntity.ok(orderService.getAllOrders());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDto> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
         return ResponseEntity.ok(orderService.getOrderById(id));
     }
 
     @PostMapping
-    public ResponseEntity<OrderDto> createOrder(@RequestBody OrderDto orderDto) {
-        return ResponseEntity.ok(orderService.createOrder(OrderDto));
+    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+        return ResponseEntity.ok(orderService.createOrder(order));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
+        return ResponseEntity.ok(orderService.updateOrder(id, order));
     }
 }
 ```
@@ -527,6 +517,7 @@ This controller provides endpoints to:
 - Get an order by ID (`GET /api/orders/{id}`)
 - Create a new order (`POST /api/orders`)
 - Delete an order by ID (`DELETE /api/orders/{id}`)
+- Update an order by ID (`PUT /api/orders/{id}`)
 
 
 ### Detached entities
@@ -536,7 +527,7 @@ In JPA, the `save()` method works like this:
 - If the ID is not `null` but the entity is detached (not in the persistence context) → 
   you get a `PersistentObjectException: detached entity passed to persist`.
 
-In our example, if we try to call `orderService.createOrder(OrderDto orderDto)` and the `OrderLineDtos` already have an ID set, we could get the following exception:
+In our example, if we try to call `orderService.createOrder(Order order)` and the `OrderLines` already have an ID set, we could get the following exception:
 ```bash
 org.hibernate.PersistentObjectException: detached entity passed to persist: org.example.onetomany.models.OrderLine
 ```
@@ -548,14 +539,10 @@ To avoid this, we should ensure that when creating a new `Order` with `OrderLine
 - Only pass managed or new (transient) entities to save(), not detached ones (entities that have an ID set).
 - Be cautious with entities pulled from previous sessions/transactions or external sources like DTOs, make sure they are not already persisted in the database.
 
-
-### Extra: moving DTO mapping to a separate class
-To keep the `OrderService` class clean, you can move the DTO mapping logic to a separate class. This is a good practice to separate concerns and keep the service layer focused on business logic. You can create a `OrderMapper` class in the `org.example.onetomany.mappers` package, and inject it into the `OrderService`. This is left as an exercise for you to implement.
-
 ### Summary
 - We have learned how to model One-to-Many and Many-to-One relationships in Spring Data JPA.
 - We started with a unidirectional Many-to-One relationship and then made it bidirectional by adding a `Set<OrderLine>` field in the `Order` entity.
 - We explored the importance of keeping both sides of the relationship in sync and created utility methods to manage the relationship more easily.
-- We have also created a REST API to manage `Order` and `OrderLine` entities using a service layer and DTOs to avoid recursive serialization issues.
+- We have also created a REST API to manage `Order` and `OrderLine` entities using a service layer and `@JsonBackReference` and `@JsonManagedReference` annotations to avoid recursive serialization issues.
 - We discussed cascading operations and how to use them to automatically persist or delete child entities when the parent entity is saved or deleted.
 - Finally, we learned about detached entities and how to avoid exceptions when trying to persist them.
