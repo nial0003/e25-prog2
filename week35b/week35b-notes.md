@@ -7,12 +7,11 @@ PROG2 - Datamatiker 3rd semester @ EK - Erhvervsakademi København
 **Date**: XX-XX-2025
 
 ## Topics
-- Introduction to One-to-One Relationships
-- Creating One-to-One Relationships using Spring Data JPA
+- Creating OneToMany and ManyToOne Relationships using Spring Data JPA
 - Bidirectional vs Unidirectional Relationships
-- DTO (Data Transfer Object) Patterns in One-to-One Relationships
+- DTO (Data Transfer Object) Patterns in OneToMany and ManyToOne Relationships
 - Fetching Strategies (Eager vs Lazy Loading)
-- Cascading Operations in One-to-One Relationships
+- Cascading Operations in OneToMany and ManyToOne Relationships
 
 ## Class notes
 -  
