@@ -1,12 +1,14 @@
 # PROG2 course @ EK
 
+- **Work**: 10ECTS (14 hours per week - 6 hours lectures w/ exercises, 8 hours of self-study)
+- **Projects**: Full stack, AI, Semester project
 
 ## Plan
 
 
-| Week | Subject                   | Plan                                                                 |
+| Week | Topic                     | Plan                                                                 |
 |------|---------------------------|----------------------------------------------------------------------|
-| 35   | REST API + Spring Data JPA | - Intro to the course<br/>- Creating our first Rest APIs with Spring Boot & Spring Data JPA |
+| 35   | REST API + Spring Data JPA | - Intro to the course<br/>- Creating our first Rest APIs with Spring Boot & Spring Data JPA<br/>- Query methods |
 | 35   | REST API + Spring Data JPA | - Entity relationships: `@OneToMany`, `@ManyToOne`<br/>- Managing bidirectional relationships<br/>- Cascade operations and fetching strategies <br/>- DTOs |
 | 36   | REST API + Spring Data JPA | - Entity relationships: `@ManyToMany` |
 | 36   | REST API + Spring Data JPA | - Exception handling with `@ControllerAdvice`<br/>- Calling external APIs with `RestTemplate` |
