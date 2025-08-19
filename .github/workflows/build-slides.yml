@@ -22,15 +22,26 @@ jobs:
     - name: Install Marp CLI
       run: npm install -g @marp-team/marp-cli
 
-    - name: Convert all slides to PDF
+    - name: Convert all .md slides to PDF
+      shell: bash
       run: |
-        find . -type f -path "*/slides/*.md" ! -path "*/slides/old/*" | while read -r file; do
+        shopt -s globstar
+        for file in **/slides/*.md; do
+          # Skip any files in a slides/old/ directory
+          if [[ "$file" == */slides/old/* ]]; then
+            continue
+          fi
+
           output="${file%.md}.pdf"
-          echo "Converting: $file → $output"
-          marp "$file" --pdf "$output" --allow-local-files
+          echo "📝 Converting: $file → $output"
+
+          # Ensure asset paths resolve by calling Marp from the file's folder
+          dir=$(dirname "$file")
+          base=$(basename "$file")
+          (cd "$dir" && marp "$base" --pdf "$(basename "${output}")" --allow-local-files)
         done
 
-    - name: Upload PDFs as artifacts
+    - name: Upload all PDFs as artifact
       uses: actions/upload-artifact@v4
       with:
         name: marp-pdfs
