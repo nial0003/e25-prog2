@@ -5,8 +5,21 @@ version: "1.0"
 paginate: true
 ---
 
+<!-- _class: lead -->
+
 # Introduction to PROG2
-3rd semester @ Erhvervsakademi København
+### 3rd semester @ Erhvervsakademi København
+
+<style>
+section.lead h1 {
+  text-align: center;
+  font-size: 2.5em;
+}
+section.lead h3 {
+  text-align: center;
+  opacity: 0.6;
+}
+</style>
 
 ---
 
