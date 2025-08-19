@@ -58,7 +58,6 @@ paginate: true
 - **Participation**: Engage in discussions, ask questions, and share your thoughts.
 - **Assignments**: Complete all assignments and projects on time.
 - **Collaboration**: Work together with your fellow students on exercises and projects.
-- **Culture**: Be nice to each other and foster a positive learning environment.
 
 ---
 

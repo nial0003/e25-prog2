@@ -11,24 +11,37 @@ theme: default
 
 ---
 
-## From Thymeleaf to REST APIs
+## PROG: 2nd to 3rd semester
 - Last semester, you learned to build web applications using **Thymeleaf**.:
   - You used **Thymeleaf** to build web pages (HTML returned from controllers).
-- This semester, we will focus on **REST APIs**:
-  - Build **REST APIs** that return **data** (JSON or XML) instead of HTML.
+- This semester, we will focus on building **REST APIs** and a frontend using JavaScript:
+  - Build **REST APIs** that return **data** (JSON) instead of HTML.
   - Use **Spring Boot** to create RESTful services.
-
+  - Use **JavaScript** to build a frontend that consumes these APIs.
 
 ---
 
 ## What is a REST API?
 - **REST** = **Re**presentational **S**tate **T**ransfer
 - A way to **send and receive data** over HTTP
+- Resources are identified by URIs
+- Data is typically exchanged in JSON format
+- Stateless communication
 - Uses standard HTTP methods:
   - `GET` → Read data
   - `POST` → Create new data
   - `PUT` → Update existing data
   - `DELETE` → Remove data
+
+---
+
+## REST API cont.
+
+- **Client-Server Architecture**: Clients request data from servers, which process the requests and return responses.
+- **Stateless**: Each request from client to server must contain all the information needed to understand and process the request.
+- **Cacheable**: Responses must define themselves as cacheable or not to prevent clients from reusing stale data.
+- **Layered System**: A client cannot ordinarily tell whether it is connected directly to the end server or an intermediary along the way.
+- **Uniform Interface**: A uniform way to interact with resources, simplifying the architecture and decoupling client and server.
 
 ---
 
