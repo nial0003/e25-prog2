@@ -1,155 +1,213 @@
 ---
 marp: true
-title: "02-rest-api"
+title: "REST APIs with Spring Boot"
 version: "1.0"
 paginate: true
 theme: default
 ---
 
-# REST APIs using Spring Boot
-3rd semester @ Erhvervsakademi København
+<!-- _class: lead -->
+
+# REST APIs using Spring Boot  
+### 3rd semester @ Erhvervsakademi København
+
+<style>
+section.lead h1 {
+  text-align: center;
+  font-size: 2.5em;
+}
+section.lead h3 {
+  text-align: center;
+  opacity: 0.6;
+}
+</style>
 
 ---
 
-## PROG: 2nd to 3rd semester
-- Last semester, you learned to build web applications using **Thymeleaf**.:
-  - You used **Thymeleaf** to build web pages (HTML returned from controllers).
-- This semester, we will focus on building **REST APIs** and a frontend using JavaScript:
-  - Build **REST APIs** that return **data** (JSON) instead of HTML.
-  - Use **Spring Boot** to create RESTful services.
-  - Use **JavaScript** to build a frontend that consumes these APIs.
+# What is an API?
+
+- **API** = **A**pplication **P**rogramming **I**nterface
+- A set of rules that allows programs to talk to each other
+- It is an **abstraction** that allows the user to interact with a system without needing to understand its internal workings
+- Can be used to access data or functionality of a service
+- Can be local (within the same application) or remote (over the internet)
 
 ---
 
-## What is a REST API?
-- **REST** = **Re**presentational **S**tate **T**ransfer
-- A way to **send and receive data** over HTTP
-- Resources are identified by URIs
-- Data is typically exchanged in JSON format
-- Stateless communication
-- Uses standard HTTP methods:
-  - `GET` → Read data
-  - `POST` → Create new data
-  - `PUT` → Update existing data
-  - `DELETE` → Remove data
+# What is REST?
+
+- **REST** = Representational State Transfer
+- Architectural standard for designing **networked applications**
+- Based on **HTTP**, using standard methods:
+  - `GET`, `POST`, `PUT`, `DELETE`, etc.
+- Works with **resources**, typically represented as **JSON**
+- **Stateless**: Each request from client to server **must contain all the information** needed to understand and process the request, i.e., **no session state** is stored on the server.
+- **Uniform Interface**: A uniform way to interact with **resources**, simplifying the architecture and **decoupling client and server**.
 
 ---
 
-## REST API cont.
+# RESTful APIs
 
-- **Client-Server Architecture**: Clients request data from servers, which process the requests and return responses.
-- **Stateless**: Each request from client to server must contain all the information needed to understand and process the request.
-- **Cacheable**: Responses must define themselves as cacheable or not to prevent clients from reusing stale data.
-- **Layered System**: A client cannot ordinarily tell whether it is connected directly to the end server or an intermediary along the way.
-- **Uniform Interface**: A uniform way to interact with resources, simplifying the architecture and decoupling client and server.
-
----
-
-## REST vs Thymeleaf
-| Thymeleaf Controller | REST API Controller |
-|----------------------|----------------------|
-| Returns HTML view    | Returns JSON data    |
-| `ModelAndView`       | `@ResponseBody` or `ResponseEntity` |
-| Browser renders page | Any client can use (browser, mobile, JS, IoT) |
+- An API that follows REST principles is called a **RESTful API**
+- Uses standard **HTTP methods** to interact with resources
+- Returns data usually as **JSON**
+- Allows different systems to exchange data in a **standardized way**
+- Can be **consumed by any client** (browser, mobile app, etc.)
+- **Examples:** [GitHub API](https://api.github.com/users?since=76908022), [REMA1000 API](https://api.digital.rema1000.dk/api/v3/products), [ipinfo API](https://ipinfo.io/json) etc.
 
 ---
 
-## Thymeleaf Controller
+# RESTful APIs cont.
+<!-- _class: center, middle -->
+<!-- center the image -->
+![REST API](assets/01-01-img.png)
+
+<style>
+img {
+  display: block;
+  margin: 0 auto;
+}
+</style>
+
+---
+
+# Key Principles
+
+- **Stateless**  
+  Each request contains all info needed (no client session on server)
+
+- **Client-Server**  
+  Separation of concerns between frontend and backend
+
+- **Uniform Interface**  
+  Standard **HTTP** methods: `GET`, `POST`, `PUT`, `DELETE`
+
+- **Resource-Based**  
+  Resources are identified by URIs (e.g., `/users`, `/todos`)
+
+---
+
+# REST is Resource-Based
+
+- A **resource** is an object or entity (e.g., user, todo, book)
+- Resources are represented as **nouns**, not actions (verbs)
+
+- **Good:**  
+  `/users`, `/todos/5`, `/products/13`
+
+- **Avoid:**  
+  `/getUser`, `/createTodo`, `/updateProduct`
+
+---
+
+# Naming Conventions
+
+- Use **plural nouns** for resource names  
+  → `/todos`, `/users`, `/books`
+
+- Use **lowercase** and **hyphens for readability**  
+  → `/order-items`, not `/orderItems`
+
+- Use **sub-resources** for hierarchy  
+  → `/users/42/orders`, `/books/5/reviews`
+
+- No verbs in path — actions are determined by **HTTP method**
+
+---
+
+# Example: A Todo API
+
+| Endpoint          | Method | Description             |
+|-------------------|--------|-------------------------|
+| `/todos`          | GET    | Get all todos           |
+| `/todos/{id}`     | GET    | Get a specific todo     |
+| `/todos`          | POST   | Create a new todo       |
+| `/todos/{id}`     | PUT    | Update an existing todo |
+| `/todos/{id}`     | DELETE | Delete a todo           |
+
+---
+
+# JSON Example
+
+A typical response from a REST API is in **JSON format** (JavaScript Object Notation)
+
+`GET /todos/1` might return:
+
+```json
+{
+  "id": 1,
+  "title": "Learn REST APIs",
+  "completed": false
+}
+```
+
+---
+## REST with Spring Boot
+- Spring Boot makes it easy to build REST APIs
+- Provides annotations:
+  - `@RestController`
+  - `@GetMapping`, `@PostMapping`, etc.
+- Automatic JSON conversion (between Java objects and JSON) with Jackson (included in Spring Boot dependencies)
+
+---
+
+## Creating a Simple REST API
+**`HelloController.java`**
 ```java
-@Controller
+@RestController // Makes it return data not views
+@RequestMapping("/api") // Base URL for this controller
 public class HelloController {
+
     @GetMapping("/hello")
-    public String hello(Model model) {
-        model.addAttribute("message", "Hello Thymeleaf!");
-        return "index";
+    public String sayHello() {
+        return "Hello, World!";
     }
 }
 ```
 
 ---
-## HELLO REST API Controller
-```java
-@RestController // returns JSON by default
-public class HelloApiController {
 
-    @GetMapping
-    public String hello() {
-        return "Hello REST API!";
+## Returning objects as JSON
+
+```java
+@RestController
+@RequestMapping("/api")
+public class TodoController {
+    @GetMapping("/todos")
+    public List<Todo> getAllTodos() {
+        return List.of(
+            new Todo("Learn REST APIs", false),
+            new Todo("Build a REST API", false)
+        );
     }
 }
-``` 
 
----
-
-## Serializing Objects to JSON
-`User.java`
-```java
-public class User {
-    private String name;
-    private int age;
+public class Todo {
+    private String title;
+    private boolean completed;
     // Constructors, getters, setters
 }
 ```
-`UserController.java`
-```java
-@RestController
-@RequestMapping("/api/user")
-public class UserController {
-    @GetMapping
-    public User getUser() {
-        return new User("Osman", 33);
-    }
-}
-```
 
 ---
 
-## Request and Response
-- **Request**: Client sends a request to the server (from browser, mobile app, etc.)
-    - `GET http://localhost:8080/api/user`
-- **Response**: Server sends back data in JSON format
-    ```json
-    {
-        "name": "Osman",
-        "age": 33
-    }
-    ```
+<!-- _class: lead -->
+# LIVE DEMO
 
 ---
 
-## HTTP Methods
-- **GET**: Retrieve data (e.g., get a list of users)
-    ```bash
-    curl http://localhost:8080/api/user
-    ```
-- **POST**: Create new data (e.g., add a new user)
-    ```bash
-    curl -X POST -H "Content-Type: application/json" -d '{"name": "Alice", "age": 30}' http://localhost:8080/api/user
-    ```
-
-- **PUT**: Update existing data (e.g., update user information)
-    ```bash
-    curl -X PUT -H "Content-Type: application/json" -d '{"name": "Alice", "age": 31}' http://localhost:8080/api/user/1
-    ```
-- **DELETE**: Remove data (e.g., delete a user)
-    ```bash
-    curl -X DELETE http://localhost:8080/api/user/1
-    ```
+# HTTP Status Codes
+- **200 OK**: Request succeeded (e.g., `GET`, `POST`)
+- **201 Created**: Resource created (e.g., `POST`)
+- **204 No Content**: Request succeeded, no content to return (e.g., `DELETE`)
+- **400 Bad Request**: Invalid request (e.g., missing parameters)
+- **404 Not Found**: Resource not found (e.g., `GET` on non-existing resource)
+- **500 Internal Server Error**: Server error (e.g., unexpected exception)
 
 ---
 
-## Response Status Codes
-- **`200 OK`**: Request was successful
-- **`201 Created`**: Resource was created successfully
-- **`204 No Content`**: Request was successful, but no content to return
-- **`400 Bad Request`**: Invalid request data
-- **`404 Not Found`**: Resource not found
-- **`500 Internal Server Error`**: Server encountered an error
-
----
-
-## Setting Response status codes in Spring Boot
-You can set the response status code in your controller methods using `ResponseEntity`:
+# Setting Response status codes in Spring Boot
+You can set the response status code in your controller methods using **`ResponseEntity`**:
 ```java
 @GetMapping("/{id}")
 public ResponseEntity<User> getUser(@PathVariable Long id) {
@@ -161,36 +219,3 @@ public ResponseEntity<User> getUser(@PathVariable Long id) {
     }
 }
 ```
-
-
----
-
-## Client-Server Architecture
-- **Client**: The application that requests data or services
-- **Server**: The application that provides data or services
-- **Communication**: Typically over HTTP/HTTPS
-```plaintext
-+-----------------+                         +----------------------------+
-|    Clients      |   ----- Requests ---->  |           Server           |
-|-----------------|                         |----------------------------|
-| - Browser       |                         | - API / Web Server         |
-| - Mobile App    |   <---- Response -----  | - Business Logic           |
-| - Desktop App   |                         | - Database                 |
-| - IoT Device    |                         | - File Storage             |
-| - Another Server|                         | - Another Service (micro)  |
-+-----------------+                         +----------------------------+
-```
-
-
----
-
-## What is a REST API?
-- **REST**: Representational State Transfer
-- An architectural style for designing networked applications
-- Uses standard HTTP methods (GET, POST, PUT, DELETE)
-- Stateless communication
-- Resources are identified by URIs
-- Data is typically exchanged in JSON or XML format
-
----
-## Why Use REST APIs?
