@@ -1,0 +1,37 @@
+name: Build Marp Slides
+
+on:
+  push:
+    paths:
+      - '**/slides/**.md'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Install Marp CLI
+      run: npm install -g @marp-team/marp-cli
+
+    - name: Convert all slides to PDF
+      run: |
+        find . -type f -path "*/slides/*.md" ! -path "*/slides/old/*" | while read -r file; do
+          output="${file%.md}.pdf"
+          echo "Converting: $file → $output"
+          marp "$file" --pdf "$output" --allow-local-files
+        done
+
+    - name: Upload PDFs as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: marp-pdfs
+        path: '**/slides/*.pdf'
