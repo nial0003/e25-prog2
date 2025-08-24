@@ -4,3 +4,6 @@ old/
 solutions
 project/
 **/*.pdf
+
+**/*-notes.md
+*-notes.md
