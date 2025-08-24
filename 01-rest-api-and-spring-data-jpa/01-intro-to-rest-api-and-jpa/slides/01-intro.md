@@ -34,10 +34,8 @@ section.lead h3 {
 ---
 
 ## Course material
-- **Slides**: [GitHub repository]()
-- **Guides**: [GitHub repository]()
-- **Exercises**: [GitHub repository]()
-- **Materials**: Fronter via Planer
+- **Slides**, **Guides**, **Exercises** and **assignments**: [GitHub repository](https://github.com/ek-osnb/e25-prog2)
+- **Materials**: Everything will be available on Fronter!
 
 ---
 
@@ -55,7 +53,7 @@ section.lead h3 {
 ## Teaching and learning methods
 - **Lectures + Live coding**: Short introduction to the topic, followed by live coding examples and discussions.
 - **Guided exercises**: Hands-on exercises during class.
-- **Self-study**: You are expected to come prepared for each class - and to continue working on the exercises at home.
+- **Self-study**: Continue working on exercises and projects outside of class.
 
 ---
 
