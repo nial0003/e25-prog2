@@ -101,3 +101,7 @@ public class CourseService {
 <!-- _class: lead -->
 # LIVE DEMO
 
+---
+
+<!-- _class: lead -->
+# [Exercise: Adding Spring Data JPA](https://github.com/ek-osnb/e25-prog2/blob/main/01-rest-api-and-spring-data-jpa/01-intro-to-rest-api-and-jpa/exercises/02-first-rest-api-with-jpa.md)

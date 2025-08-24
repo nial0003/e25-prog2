@@ -224,3 +224,8 @@ public ResponseEntity<User> getUser(@PathVariable Long id) {
 
 <!-- _class: lead -->
 # LIVE DEMO
+
+---
+
+<!-- _class: lead -->
+# [Exercise: REST API with Spring Boot](https://github.com/ek-osnb/e25-prog2/blob/main/01-rest-api-and-spring-data-jpa/01-intro-to-rest-api-and-jpa/exercises/01-first-rest-api.md)
