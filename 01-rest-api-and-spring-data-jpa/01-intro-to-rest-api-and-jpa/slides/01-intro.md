@@ -35,7 +35,7 @@ section.lead h3 {
 
 ## Course material
 - **Slides**, **Guides**, **Exercises** and **assignments**: [GitHub repository](https://github.com/ek-osnb/e25-prog2)
-- **Materials**: Everything will be available on Fronter!
+- **Materials**: Use Fronter for plan and links to GitHub.
 
 ---
 
