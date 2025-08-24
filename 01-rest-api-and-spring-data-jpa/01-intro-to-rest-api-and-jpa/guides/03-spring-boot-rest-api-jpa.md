@@ -332,6 +332,3 @@ curl http://localhost:8080/api/courses?instructor=OSN
 ## Conclusion
 In this tutorial, we have created a simple Spring Boot REST API with Spring Data JPA to manage courses. We have implemented all CRUD operations and tested them using both a web browser and the terminal. This is a foundational step in building more complex applications with Spring Boot and JPA.
 
-## Exercises
-1. Add a service layer that handles the business logic. This will make the controller depend on `CourseService` instead of `CourseRepository`, and the service will depend on `CourseRepository`. For these small applications, it really doesn't matter, but if you add more complex logic, it is a good practice to separate the concerns.
-2. Repeat the same steps for a `Student` entity, creating a `StudentRepository`, `StudentController`, and implementing CRUD operations.

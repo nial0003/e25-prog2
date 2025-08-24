@@ -153,7 +153,7 @@ You should receive a response like this:
         "address": {
             "street": "Guldbergsgade 29",
             "city": "Copenhagen",
-            "zipCode": "2300"
+            "zipCode": "2400"
         }
     }
 ]
@@ -217,22 +217,5 @@ In this example, the `getPersonsByAgeAndCity`:
 - `/api/persons?city=copenhagen` → only persons living in Copenhagen
 - `/api/persons?age=30&city=copenhagen` → only persons with age 30 and city Copenhagen
 
----
 
-## Exercise
-1. Create a new REST API that returns the following JSON response:
-```json
-[
-    {
-        "id": 1,
-        "title": "Java for dummies",
-        "author": {
-            "name": "John Doe",
-            "age": 45
-        },
-        "tags": ["Java", "Programming", "Education"]
-    }
-]
-```
-**Hint:** Create classes for `Book`, `Author`, and use a `List<String>` for tags. Implement a controller (`BookController`) that returns a list of `Book` objects. Create several `Book` objects in the controller constructor to return a list of books.
 
