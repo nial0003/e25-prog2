@@ -339,3 +339,36 @@ class CourseRepositoryTest {
 }
 ```
 This will print the database used in the tests ie. `H2`.
+
+## `@Transactional` annotation
+The annotation `@Transactional` can be used to manage transactions in your service or repository methods. When a method is annotated with `@Transactional`, Spring will automatically start a transaction when the method is called and commit it when the method completes successfully. If an exception occurs, the transaction will be rolled back.
+
+Here is an example of a simulated rollback scenario:
+
+```java
+@Transactional
+public User createUser(User user) {
+    user.setId(null); // Ensure the ID is null for new entities
+    userRepository.save(user);
+    throw new RuntimeException("Simulated failure after saving user");
+}
+```
+With the above code, the user will not be saved to the database because the exception will cause the transaction to be rolled back. If we have left out the `@Transactional` annotation, the user would have been saved despite the exception. So adding `@Transactional` is crucial for ensuring that the database remains consistent and that partial changes are not committed.
+
+### When to use `@Transactional`
+You typically use `@Transactional` in service layer methods that perform multiple database operations that should be treated as a single unit of work.
+
+Furthermore, `@Transactional` supports dirty checking, which means that if you retrieve an entity from the database, modify its fields, and the entity is still within a transactional context, JPA will automatically detect the changes and update the database when the method completes.
+
+```java
+@Transactional
+public void updateUserEmail(Long userId, String newEmail) {
+    Optional<User> user = userRepository.findById(userId);
+    if (user.isPresent()) {
+        user.get().setEmail(newEmail);
+        // No need to call save() - changes will be automatically persisted
+    } else {
+        throw new RuntimeException("User not found with id: " + userId);
+    }
+}
+```
