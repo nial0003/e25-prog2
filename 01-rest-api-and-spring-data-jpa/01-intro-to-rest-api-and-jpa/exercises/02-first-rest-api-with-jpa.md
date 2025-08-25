@@ -92,7 +92,6 @@ public class Course {
             this.courseRepository = courseRepository;
         }
 
-        // Add service methods here
         public List<Course> getAllCourses(String name) {
             // TODO: Implement filtering by name
             return courseRepository.findAll();
