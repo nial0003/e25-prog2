@@ -48,6 +48,7 @@ In this exercise, you will create a simple REST API using Spring Boot without a 
     public class CourseController {
 
         private List<Course> courses = new ArrayList<>();
+        private Long nextId = 1L;
 
         public CourseController() {
             // TODO Add Some sample courses to the list
@@ -94,9 +95,8 @@ In this exercise, you will create a simple REST API using Spring Boot without a 
     @PostMapping
     public ResponseEntity<Course> addCourse(@RequestBody Course course) {
         // Simple ID generation
-        course.setId((long) (courses.size() + 1));
+        course.setId(nextId++);
         // TODO Add the course to the list and return it
-
         return ResponseEntity.status(HttpStatus.CREATED).body(course);
     }
     ```
