@@ -74,7 +74,7 @@ public class Course {
     ```
 2. Add a derived query method to find courses by name:
     ```java
-    List<Course> findByNameContaining(String name);
+    List<Course> findByNameContainingIgnoreCase(String name);
     ```
 
 ## Step 5: Create a Service Layer
