@@ -99,3 +99,28 @@ private List<OrderLine> orderLines = new ArrayList<>();
 ```
 
 Now, if you delete an `Order` using a `DELETE` request, all its associated `OrderLine` entities will also be deleted.
+
+## Step 6 (Optional): Pushing to GitHub
+Open the terminal in IntelliJ and run the following commands to push your changes to GitHub:
+
+Add the changes to the staging area:
+```bash
+git add .
+```
+
+Commit the changes with a meaningful message:
+```bash
+git commit -m "Completed exercise 01"
+```
+
+Push the changes to the remote repository:
+```bash
+git push -u origin main
+```
+
+To see the status of your git repository, you can run:
+```bash
+git status
+```
+
+There should be no changes left to commit.
