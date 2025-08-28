@@ -27,7 +27,6 @@ public record OrderLineDto(Long id, double unitPrice, int quantity, String produ
 To transform between entities and DTOs, we will create a mapper class in the `ek.osnb.jpa.orders.dto` package. Create a new class `OrderMapper` with the following methods:
 
 ```java
-@Service
 public class OrderMapper {
     public static OrderDto toDto(Order order) {
         List<OrderLineDto> orderLines = new ArrayList<>();
