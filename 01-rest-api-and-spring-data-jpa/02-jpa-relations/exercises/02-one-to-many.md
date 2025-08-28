@@ -125,3 +125,28 @@ order2.addOrderLine(orderLine5);
 ```
 
 This ensures that both sides of the relationship are kept in sync, and it will avoid stale data.
+
+## Step 6 (Optional): Pushing to GitHub
+Open the terminal in IntelliJ and run the following commands to push your changes to GitHub:
+
+Add the changes to the staging area:
+```bash
+git add .
+```
+
+Commit the changes with a meaningful message:
+```bash
+git commit -m "Completed exercise 01"
+```
+
+Push the changes to the remote repository:
+```bash
+git push -u origin main
+```
+
+To see the status of your git repository, you can run:
+```bash
+git status
+```
+
+There should be no changes left to commit.

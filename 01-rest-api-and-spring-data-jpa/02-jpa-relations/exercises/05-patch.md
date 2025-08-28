@@ -63,6 +63,32 @@ curl -X PATCH http://localhost:8080/api/orders/1 \
 ```
 This command updates the status of the order with ID 1 to "SHIPPED". You should receive a response with the updated order details.
 
+## Step 5 (Optional): Pushing to GitHub
+Open the terminal in IntelliJ and run the following commands to push your changes to GitHub:
+
+Add the changes to the staging area:
+```bash
+git add .
+```
+
+Commit the changes with a meaningful message:
+```bash
+git commit -m "Completed exercise 01"
+```
+
+Push the changes to the remote repository:
+```bash
+git push -u origin main
+```
+
+To see the status of your git repository, you can run:
+```bash
+git status
+```
+
+There should be no changes left to commit.
+
+
 ## Extra Notes:
 
 Usually when doing `PATCH` requests, it should be possible to update multiple fields at once. This can be achieved by creating a more comprehensive DTO that includes all the fields that can be updated. For example, you could create an `OrderUpdateDto` that includes fields for `orderDate`, `status`, and `orderLines`. The service method would then check which fields are present in the DTO and update only those fields in the existing order.

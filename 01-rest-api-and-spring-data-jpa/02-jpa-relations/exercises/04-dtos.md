@@ -200,3 +200,28 @@ The dtos make sure that we only expose the necesarry data, and we avoid issues w
 
 ## Step 6: Testing the application
 Run the application and test the endpoints using a tool like Postman or curl. You should be able to create, retrieve, update, and delete orders using the DTOs.
+
+## Step 7 (Optional): Pushing to GitHub
+Open the terminal in IntelliJ and run the following commands to push your changes to GitHub:
+
+Add the changes to the staging area:
+```bash
+git add .
+```
+
+Commit the changes with a meaningful message:
+```bash
+git commit -m "Completed exercise 01"
+```
+
+Push the changes to the remote repository:
+```bash
+git push -u origin main
+```
+
+To see the status of your git repository, you can run:
+```bash
+git status
+```
+
+There should be no changes left to commit.
