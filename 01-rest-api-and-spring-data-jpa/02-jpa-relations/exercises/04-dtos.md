@@ -28,14 +28,18 @@ To transform between entities and DTOs, we will create a mapper class in the `ek
 
 ```java
 public class OrderMapper {
-    public static OrderDto toDto(Order order) {
+        public static OrderDto toDto(Order order) {
         List<OrderLineDto> orderLines = new ArrayList<>();
 
         for (var line : order.getOrderLines()) {
-            orderLines.add(new OrderLineDto(line.getId(), line.getUnitPrice(), line.getQuantity(), line.getProduct()));
+            orderLines.add(toDto(line));
         }
 
         return new OrderDto(order.getId(), order.getOrderDate(), order.getStatus().name(), orderLines);
+    }
+
+    public static OrderLineDto toDto(OrderLine orderLine) {
+        return new OrderLineDto(orderLine.getId(), orderLine.getUnitPrice(), orderLine.getQuantity(), orderLine.getProduct());
     }
 
     public static Order toEntity(OrderDto orderDto) {
@@ -44,14 +48,19 @@ public class OrderMapper {
         order.setStatus(OrderStatus.valueOf(orderDto.status()));
 
         for (var lineDto : orderDto.orderLines()) {
-            var line = new OrderLine();
-            line.setProduct(lineDto.product());
-            line.setUnitPrice(lineDto.unitPrice());
-            line.setQuantity(lineDto.quantity());
+            var line = toEntity(lineDto);
             order.addOrderLine(line);
         }
 
         return order;
+    }
+
+    public static OrderLine toEntity(OrderLineDto orderLineDto) {
+        OrderLine orderLine = new OrderLine();
+        orderLine.setProduct(orderLineDto.product());
+        orderLine.setUnitPrice(orderLineDto.unitPrice());
+        orderLine.setQuantity(orderLineDto.quantity());
+        return orderLine;
     }
 }
 ```

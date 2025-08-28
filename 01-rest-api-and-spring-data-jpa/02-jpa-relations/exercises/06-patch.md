@@ -6,16 +6,14 @@ Lets consider the following user stories:
 
 **USERSTORY 01**: As a user, I want to update only the status of an order without affecting other fields like order date or order lines.
 
-**USERSTORY 02**: As a user, I want to add or remove specific order lines from an existing order without needing to resend the entire order details.
-
 We will only implement the first user story in this exercise, the second user story is left as an optional exercise.
 
 
 ## Step 1: Create a DTO for the PATCH request
-Create a new record `OrderStatusUpdateDto` in the `ek.osnb.jpa.orders.dto` package:
+Create a new record `OrderUpdateDto` in the `ek.osnb.jpa.orders.dto` package:
 
 ```java
-public record OrderStatusUpdateDto(String status) {
+public record OrderUpdateDto(String status) {
 }
 ```
 This DTO will be used to capture the status update from the client.
@@ -24,22 +22,22 @@ This DTO will be used to capture the status update from the client.
 In the `OrderService` interface, add a new method for updating the order status:
 
 ```java
-OrderDto updateOrderStatus(Long id, OrderStatusUpdateDto statusUpdateDto);
+OrderDto updateOrderStatus(Long id, OrderUpdateDto orderUpdateDto);
 ```
 
 In the `OrderServiceImpl` class, implement the `updateOrderStatus` method:
 
 ```java
 @Override
-public OrderDto updateOrderStatus(Long id, OrderStatusUpdateDto statusUpdateDto) {
+public OrderDto updateOrderStatus(Long id, OrderUpdateDto orderUpdateDto) {
     Optional<Order> existingOrder = orderRepository.findById(id);
-    if (existingOrder.isPresent()) {
-        Order order = existingOrder.get();
-        order.setStatus(OrderStatus.valueOf(statusUpdateDto.status()));
-        Order updatedOrder = orderRepository.save(order);
-        return OrderMapper.toDto(updatedOrder);
+    if (existingOrder.isEmpty()) {
+        throw new RuntimeException("Order not found with id: " + id);
     }
-    throw new RuntimeException("Order not found with id: " + id);
+    Order order = existingOrder.get();
+    order.setStatus(OrderStatus.valueOf(orderUpdateDto.status()));
+    Order updatedOrder = orderRepository.save(order);
+    return OrderMapper.toDto(updatedOrder);
 }
 ```
 
@@ -48,9 +46,12 @@ In the `OrderController` class, add a new method to handle PATCH requests for up
 
 ```java
 @PatchMapping("/{id}")
-public ResponseEntity<OrderDto> updateOrderStatus(@PathVariable Long id, @RequestBody OrderStatusUpdateDto statusUpdateDto) {
-    OrderDto updatedOrder = orderService.updateOrderStatus(id, statusUpdateDto);
-    return ResponseEntity.ok(updatedOrder);
+public ResponseEntity<OrderDto> updateOrderStatus(@PathVariable Long id, @RequestBody OrderUpdateDto orderUpdateDto) {
+    try {
+        return ResponseEntity.ok(orderService.removeOrderLine(id, orderLineId));
+    } catch (RuntimeException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+    }
 }
 ```
 
@@ -73,7 +74,7 @@ git add .
 
 Commit the changes with a meaningful message:
 ```bash
-git commit -m "Completed exercise 05"
+git commit -m "Completed exercise 06"
 ```
 
 Push the changes to the remote repository:
