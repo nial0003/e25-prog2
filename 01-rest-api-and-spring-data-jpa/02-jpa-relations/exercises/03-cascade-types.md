@@ -110,7 +110,7 @@ git add .
 
 Commit the changes with a meaningful message:
 ```bash
-git commit -m "Completed exercise 01"
+git commit -m "Completed exercise 03"
 ```
 
 Push the changes to the remote repository:
