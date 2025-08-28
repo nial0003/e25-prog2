@@ -1,6 +1,6 @@
 # Seting up the project
 
-You will work on a project that demonstrates how to use JPA relationships in a Spring Boot application. Mores specifically how to use the `@ManyToOne`, and `@OneToMany` annotations. But first, you need to set up the project.
+You will work on a project that demonstrates how to use JPA relationships in a Spring Boot application. More specifically how to use the `@ManyToOne`, and `@OneToMany` annotations. But first, you need to set up the project.
 
 ## Step 1: Fork the repository
 Fork this repository [link](https://github.com/ek-osnb/spring-jpa-relations).

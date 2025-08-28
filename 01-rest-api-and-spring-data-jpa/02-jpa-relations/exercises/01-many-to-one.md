@@ -31,7 +31,7 @@ spring.jpa.properties.hibernate.use_sql_comments=true
 
 **Run the application to see if everything is working fine.**
 
-## Step 2: Making models Entities
+## Step 2: From models to Entities
 
 We want to make the following models an **Entity**:
 - `Order`
