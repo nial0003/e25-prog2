@@ -8,10 +8,10 @@
 
 | Week | Topic                     | Plan                                                                 |
 |------|---------------------------|----------------------------------------------------------------------|
-| 35   | REST API + Spring Data JPA | - Intro to the course<br/>- Creating our first Rest APIs with Spring Boot & Spring Data JPA<br/>- Query methods |
-| 35   | REST API + Spring Data JPA | - Entity relationships: `@OneToMany`, `@ManyToOne`<br/>- Managing bidirectional relationships<br/>- Cascade operations and fetching strategies <br/>- DTOs |
-| 36   | REST API + Spring Data JPA | - Entity relationships: `@ManyToMany` |
-| 36   | REST API + Spring Data JPA | - Exception handling with `@ControllerAdvice`<br/>- Calling external APIs with `RestTemplate` |
+| 35   | [REST API + Spring Data JPA](https://github.com/ek-osnb/e25-prog2/tree/main/01-rest-api-and-spring-data-jpa/01-intro-to-rest-api-and-jpa) | - Intro to the course<br/>- Creating our first Rest APIs with Spring Boot & Spring Data JPA<br/>- Query methods |
+| 35   | [REST API + Spring Data JPA](https://github.com/ek-osnb/e25-prog2/tree/main/01-rest-api-and-spring-data-jpa/02-jpa-relations) | - Entity relationships: `@OneToMany`, `@ManyToOne`<br/>- Managing bidirectional relationships<br/>- Cascade operations and fetching strategies <br/>- DTOs |
+| 36   | [REST API + Spring Data JPA](https://github.com/ek-osnb/e25-prog2/tree/main/01-rest-api-and-spring-data-jpa/03-jpa-relations-cont) | - Entity relationships: `@ManyToMany` |
+| 36   | [REST API + Spring Data JPA](https://github.com/ek-osnb/e25-prog2/tree/main/01-rest-api-and-spring-data-jpa/04-exceptions-and-external-services) | - Exception handling with `@ControllerAdvice`<br/>- Calling external APIs with `RestTemplate` |
 | 37   | JavaScript                | - JavaScript syntax, operators & functions |
 | 37   | JavaScript                |                                                                      |
 | 38   | JavaScript                |                                                                      |
