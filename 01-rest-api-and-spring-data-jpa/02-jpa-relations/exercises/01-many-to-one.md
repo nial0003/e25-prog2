@@ -312,7 +312,27 @@ Take a moment to understand how each method works.
 
 **Run the application to see if everything is working fine.**
 
-## Step 11 (Optional): Pushing to GitHub
+## Step 11: Mapping Enums
+
+In the database, you will see that status is mapped to an integer, this is because we haven't specified that we want to use a `String`. To achieve this, add the following annotation to your `OrderStatus`:
+
+```java
+@Entity
+@Table(name ="orders")
+public class Order extends BaseEntity {
+
+    // Other fields...
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
+
+    // Other fields, constructors, getters, and setters
+}
+```
+
+If you run your application now, and open `http://localhost:8080/h2-console`, you will notice that the `status` field is now mapped to a string in the database.
+
+## Step 12 (Optional): Pushing to GitHub
 Open the terminal in IntelliJ and run the following commands to push your changes to GitHub:
 
 Add the changes to the staging area:
