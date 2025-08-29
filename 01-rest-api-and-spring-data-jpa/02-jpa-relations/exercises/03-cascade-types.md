@@ -48,7 +48,7 @@ curl -X POST http://localhost:8080/api/orders \
 -H "Content-Type: application/json" \
 -d '{
     "orderDate": "2025-08-30",
-    "status": "PAID",
+    "status": "PENDING",
     "orderLines": [
         {
             "product": "Product C",
