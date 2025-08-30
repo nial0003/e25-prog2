@@ -11,7 +11,7 @@ To address these issues, we can use Data Transfer Objects (DTOs). DTOs are simpl
 
 ## Step 1: Creating DTOs
 
-Create a new package `dto` in the `ek.osnb.jpa.orders` package. Inside the `dto` package, create two records: `OrderDTO` and `OrderLineDTO`.
+Create a new package `dto` in the `ek.osnb.jpa.orders` package. Inside the `dto` package, create two records: `OrderDto` and `OrderLineDto`.
 
 ```java
 public record OrderDto(Long id, LocalDate orderDate, String status, List<OrderLineDto> orderLines) {
