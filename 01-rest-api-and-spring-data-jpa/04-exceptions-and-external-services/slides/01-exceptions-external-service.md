@@ -85,13 +85,6 @@ section.lead h3 {
 
 ---
 
-<!-- _class: lead -->
-
-# Live code
-### @ControllerAdvice & @RestControllerAdvice
-
----
-
 # Adapter pattern
 - Adapter is a design pattern that allows objects with incompatible interfaces to work together.
 - They allow for communication between different systems or layers.
