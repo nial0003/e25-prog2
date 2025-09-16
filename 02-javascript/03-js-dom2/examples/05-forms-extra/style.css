@@ -1,0 +1,129 @@
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6fb;
+	margin: 0;
+	padding: 0;
+}
+
+h1 {
+	text-align: center;
+	color: #333;
+	margin-top: 30px;
+}
+
+form {
+	background: #fff;
+	max-width: 450px;
+	margin: 40px auto;
+	padding: 30px 35px 25px 35px;
+	border-radius: 10px;
+	box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+label {
+	font-weight: 500;
+	margin-bottom: 5px;
+	color: #222;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="color"],
+input[type="range"],
+input[type="file"],
+select,
+textarea {
+	width: 100%;
+	padding: 8px 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font-size: 1rem;
+	box-sizing: border-box;
+	margin-top: 3px;
+}
+
+textarea {
+    height: 100px;
+}
+
+input[type="color"] {
+	padding: 2px;
+	height: 36px;
+	width: 50px;
+}
+
+input[type="range"] {
+	width: 100%;
+	margin-left: 0;
+    padding: 0;
+}
+
+input[type="radio"],
+input[type="radio"],
+input[type="checkbox"] {
+	margin-right: 6px;
+	accent-color: #4f8cff;
+	vertical-align: middle;
+	width: 18px;
+	height: 18px;
+}
+
+/* Align radio/checkbox label text vertically */
+input[type="radio"] + label,
+input[type="checkbox"] + label {
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: 15px;
+	margin-bottom: 0;
+	font-weight: 400;
+}
+
+/* Group radio and checkbox options for better spacing */
+.radio-group, .checkbox-group {
+	display: flex;
+	gap: 15px;
+	align-items: center;
+	margin-bottom: 5px;
+}
+
+textarea {
+	resize: vertical;
+	min-height: 60px;
+}
+
+input[type="submit"],
+input[type="reset"] {
+	background: #4f8cff;
+	color: #fff;
+	border: none;
+	border-radius: 5px;
+	padding: 10px 0;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	margin-top: 10px;
+	transition: background 0.2s;
+}
+
+input[type="submit"]:hover,
+input[type="reset"]:hover {
+	background: #2563eb;
+}
+
+select {
+	background: #f9f9f9;
+}
+
+form > br {
+	display: none;
+}
+label {
+    font-weight: bold;
+}

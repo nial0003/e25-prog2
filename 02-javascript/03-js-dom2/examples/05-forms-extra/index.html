@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Forms</title>
+</head>
+<body>
+    <h1>Form Example</h1>
+    <!-- All fields in a form -->
+    <form id="myForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password">
+        <br><br>
+        <label for="number">Number:</label>
+        <input type="number" id="number" name="number">
+        <br><br>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+        <br><br>
+        <label for="time">Time:</label>
+        <input type="time" id="time" name="time">
+        <br><br>
+        <label for="color">Color:</label>
+        <input type="color" id="color" name="color">
+        <br><br>
+        <label for="range">Range:</label>
+    <input type="range" id="range" name="range" min="0" max="10" >
+    <span id="rangeValue">50</span>
+        <br><br>
+        <label for="file">File:</label>
+        <input type="file" id="file" name="file">
+        <br><br>
+        <label>Gender:</label>
+        <div class="radio-group">
+            <input type="radio" id="male" name="gender" value="male">
+            <label for="male">Male</label>
+            <input type="radio" id="female" name="gender" value="female">
+            <label for="female">Female</label>
+            <input type="radio" id="other" name="gender" value="other">
+            <label for="other">Other</label>
+        </div>
+        <br>
+        <label for="hobbies">Hobbies:</label>
+        <div class="checkbox-group">
+            <input type="checkbox" id="hobby1" name="hobbies" value="reading">
+            <label for="hobby1">Reading</label>
+            <input type="checkbox" id="hobby2" name="hobbies" value="sports">
+            <label for="hobby2">Sports</label>
+            <input type="checkbox" id="hobby3" name="hobbies" value="music">
+            <label for="hobby3">Music</label>
+        </div>
+        <br>
+        <label for="country">Country:</label>
+        <select id="country" name="country">
+            <option value="">Select</option>
+            <option value="dk">Denmark</option>
+            <option value="us">USA</option>
+            <option value="ca">Canada</option>
+            <option value="uk">UK</option>
+            <option value="au">Australia</option>
+        </select>
+        <br><br>
+        <label for="bio">Bio:</label>
+        <textarea id="bio" name="bio" rows="4" cols="30"></textarea>
+        <br><br>
+        <input type="hidden" name="hiddenField" value="hiddenValue">
+        <input type="reset" value="Reset">
+        <input type="submit" value="Submit">
+    </form>
+    <script src="app.js"></script>
+    
+</body>
+</html>
