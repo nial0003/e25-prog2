@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Button Clicker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 4em;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        #clicksPerSecond, #totalClicks, #maxClicksPerSecond {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clicker game</h1>
+    <p>Click the button as fast as you can!</p>
+    <button id="clickMe">Click me!</button>
+    <p>Clicks per second: <span id="clicksPerSecond">0</span></p>
+    <p>Total clicks: <span id="totalClicks">0</span></p>
+    <p>Maximum clicks per second: <span id="maxClicksPerSecond">0</span></p>
+    <script src="app.js"></script>
+</body>
+</html>

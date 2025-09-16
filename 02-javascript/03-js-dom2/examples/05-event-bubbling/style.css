@@ -1,0 +1,23 @@
+#outer {
+    padding: 2em;
+    background-color: red;
+}
+
+#middle {
+    padding: 2em;
+    background-color: yellow;
+}
+
+#inner {
+    padding: 2em;
+    background-color: green;
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    height: 100dvh;
+    gap: 4em;
+}
