@@ -5,6 +5,7 @@ notes/
 solutions
 project/
 **/*.pdf
+.vscode/
 
 **/*-notes.md
 *-notes.md
