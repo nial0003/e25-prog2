@@ -4,9 +4,12 @@ document.getElementById('dblBtn').addEventListener('dblclick', function() {
 });
 
 // Mouseover event
-document.getElementById('hoverDiv').addEventListener('mouseover', function() {
-	this.style.background = '#b2eaff';
-	this.textContent = 'Mouse is over!';
+document.getElementById('hoverDiv').addEventListener('mouseover', function(e) {
+	e.target.style.background = '#b2eaff';
+	e.target.textContent = 'Mouse is over!';
+	console.log(e.clientX);
+	console.log(e.clientY);
+
 });
 document.getElementById('hoverDiv').addEventListener('mouseout', function() {
 	this.style.background = '#eaf1fb';
