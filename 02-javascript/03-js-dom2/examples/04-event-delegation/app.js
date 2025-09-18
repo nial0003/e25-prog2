@@ -32,7 +32,7 @@ function addToList(item,quantity) {
   `;
 
   ul.insertAdjacentHTML("beforeend",html);
-  // ul.lastElementChild.addEventListener("click",handleItemClick);
+  ul.lastElementChild.addEventListener("click",handleItemClick);
 
 }
 
